@@ -1,6 +1,4 @@
 using Inertia.NET.FastEndpoints;
-using Microsoft.AspNetCore.Http;
-
 namespace FastEndpointsExample.Endpoints;
 
 /// <summary>
@@ -15,7 +13,7 @@ public class UsersEndpoint : InertiaEndpoint
         AllowAnonymous();
     }
 
-    public override async Task<IResult> HandleAsync(CancellationToken ct) =>
+    public override Task HandleAsync(CancellationToken ct) =>
         RenderAsync("Users/Index", new Dictionary<string, object?>
         {
             // Eager: resolved on every request
@@ -29,7 +27,7 @@ public class UsersEndpoint : InertiaEndpoint
 
             // Once: evaluated once, cached client-side thereafter
             ["countries"] = Inertia.Once(() => CountryRepository.All()),
-        });
+        }, ct);
 }
 
 /// <summary>POST /users with typed request body.</summary>
@@ -47,7 +45,7 @@ public class CreateUserEndpoint : InertiaEndpoint<CreateUserRequest>
         AllowAnonymous();
     }
 
-    public override async Task<IResult> HandleAsync(CreateUserRequest req, CancellationToken ct)
+    public override Task HandleAsync(CreateUserRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.Name))
         {
@@ -55,13 +53,11 @@ public class CreateUserEndpoint : InertiaEndpoint<CreateUserRequest>
             return RenderAsync("Users/Create", new
             {
                 errors = new { name = "Name is required." },
-            });
+            }, ct);
         }
 
         // PRG: redirect after successful creation
-        HttpContext.Response.StatusCode = StatusCodes.Status303SeeOther;
-        HttpContext.Response.Headers.Location = "/users";
-        return Results.Empty;
+        return SeeOtherAsync("/users", ct);
     }
 }
 
@@ -76,12 +72,12 @@ public class UsersDashboardEndpoint : InertiaEndpoint
         AllowAnonymous();
     }
 
-    public override async Task<IResult> HandleAsync(CancellationToken ct) =>
+    public override Task HandleAsync(CancellationToken ct) =>
         RenderAsync("Users/Dashboard", new Dictionary<string, object?>
         {
             ["summary"]    = new { total = UserRepository.All().Count },
             ["activities"] = Inertia.Merge(ActivityFeed.Page(1)).MatchOn("id"),
-        });
+        }, ct);
 }
 
 // ── Stub domain ───────────────────────────────────────────────────────────────

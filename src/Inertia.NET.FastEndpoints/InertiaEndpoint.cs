@@ -8,8 +8,7 @@ namespace Inertia.NET.FastEndpoints;
 
 /// <summary>
 /// Base endpoint for rendering Inertia pages from FastEndpoints handlers.
-/// Derive from this and call <see cref="RenderAsync"/> instead of <c>SendAsync</c>.
-/// Handlers should return the result of RenderAsync().
+/// Derive from this and call <see cref="RenderAsync"/> from <c>HandleAsync()</c>.
 /// </summary>
 public abstract class InertiaEndpoint : EndpointWithoutRequest
 {
@@ -17,33 +16,38 @@ public abstract class InertiaEndpoint : EndpointWithoutRequest
 
     /// <summary>
     /// Render an Inertia page with the given component and optional props.
-    /// This should be returned from your HandleAsync method.
     /// </summary>
-    protected IResult RenderAsync(string component) =>
-        RenderAsync(component, new Dictionary<string, object?>());
+    protected Task RenderAsync(string component, CancellationToken ct = default) =>
+        RenderAsync(component, new Dictionary<string, object?>(), ct);
 
     /// <summary>
     /// Render an Inertia page with the given component and props.
-    /// This should be returned from your HandleAsync method.
     /// </summary>
-    protected IResult RenderAsync(string component, object props) =>
-        RenderAsync(component, props as IDictionary<string, object?> ?? new Dictionary<string, object?> { { "props", props } });
+    protected async Task RenderAsync(string component, object props, CancellationToken ct = default) =>
+        await Send.ResultAsync(Inertia.Render(component, props));
 
     /// <summary>
     /// Render an Inertia page with the given component and props dictionary.
-    /// This should be returned from your HandleAsync method.
     /// </summary>
-    protected IResult RenderAsync(string component, IDictionary<string, object?> props)
+    protected async Task RenderAsync(string component, IDictionary<string, object?> props, CancellationToken ct = default)
     {
-        var result = Inertia.Render(component, props);
-        HttpContext.SetInertiaResult(result);
-        return result;
+        await Send.ResultAsync(Inertia.Render(component, props));
+    }
+
+    /// <summary>
+    /// Send a 303 redirect without falling back to FastEndpoints' auto-204 response.
+    /// </summary>
+    protected async Task SeeOtherAsync(string location, CancellationToken ct = default)
+    {
+        HttpContext.Response.StatusCode = StatusCodes.Status303SeeOther;
+        HttpContext.Response.Headers.Location = location;
+        await HttpContext.Response.StartAsync(ct);
     }
 }
 
 /// <summary>
 /// Base endpoint for rendering Inertia pages from FastEndpoints handlers with a typed request.
-/// Handlers should return the result of RenderAsync().
+/// Derive from this and call <see cref="RenderAsync"/> from <c>HandleAsync()</c>.
 /// </summary>
 public abstract class InertiaEndpoint<TRequest> : Endpoint<TRequest>
     where TRequest : notnull, new()
@@ -52,26 +56,31 @@ public abstract class InertiaEndpoint<TRequest> : Endpoint<TRequest>
 
     /// <summary>
     /// Render an Inertia page with the given component and optional props.
-    /// This should be returned from your HandleAsync method.
     /// </summary>
-    protected IResult RenderAsync(string component) =>
-        RenderAsync(component, new Dictionary<string, object?>());
+    protected Task RenderAsync(string component, CancellationToken ct = default) =>
+        RenderAsync(component, new Dictionary<string, object?>(), ct);
 
     /// <summary>
     /// Render an Inertia page with the given component and props.
-    /// This should be returned from your HandleAsync method.
     /// </summary>
-    protected IResult RenderAsync(string component, object props) =>
-        RenderAsync(component, props as IDictionary<string, object?> ?? new Dictionary<string, object?> { { "props", props } });
+    protected async Task RenderAsync(string component, object props, CancellationToken ct = default) =>
+        await Send.ResultAsync(Inertia.Render(component, props));
 
     /// <summary>
     /// Render an Inertia page with the given component and props dictionary.
-    /// This should be returned from your HandleAsync method.
     /// </summary>
-    protected IResult RenderAsync(string component, IDictionary<string, object?> props)
+    protected async Task RenderAsync(string component, IDictionary<string, object?> props, CancellationToken ct = default)
     {
-        var result = Inertia.Render(component, props);
-        HttpContext.SetInertiaResult(result);
-        return result;
+        await Send.ResultAsync(Inertia.Render(component, props));
+    }
+
+    /// <summary>
+    /// Send a 303 redirect without falling back to FastEndpoints' auto-204 response.
+    /// </summary>
+    protected async Task SeeOtherAsync(string location, CancellationToken ct = default)
+    {
+        HttpContext.Response.StatusCode = StatusCodes.Status303SeeOther;
+        HttpContext.Response.Headers.Location = location;
+        await HttpContext.Response.StartAsync(ct);
     }
 }

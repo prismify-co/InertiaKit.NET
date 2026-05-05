@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddLogging();
         services.AddSingleton<IInertiaSerializer, SystemTextJsonInertiaSerializer>();
         services.AddScoped<IInertiaService, InertiaService>();
+        services.AddScoped<InertiaResponseExecutor>();
         // Register PropResolver as scoped so DI injects a typed ILogger<PropResolver>
         services.AddScoped<PropResolver>();
 

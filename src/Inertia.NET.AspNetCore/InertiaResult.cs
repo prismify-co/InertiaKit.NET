@@ -1,6 +1,7 @@
 using Inertia.NET.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Inertia.NET.AspNetCore;
 
@@ -54,10 +55,8 @@ public sealed class InertiaResult(string component, IDictionary<string, object?>
     }
 
     // IResult — Minimal API / FastEndpoints return value
-    public Task ExecuteAsync(HttpContext httpContext)
-    {
-        // Store for the middleware to pick up; do not throw so pipelines survive.
-        httpContext.Items[typeof(InertiaResult)] = this;
-        return Task.CompletedTask;
-    }
+    public Task ExecuteAsync(HttpContext httpContext) =>
+        httpContext.RequestServices
+            .GetRequiredService<Internal.InertiaResponseExecutor>()
+            .ExecuteAsync(httpContext, this);
 }

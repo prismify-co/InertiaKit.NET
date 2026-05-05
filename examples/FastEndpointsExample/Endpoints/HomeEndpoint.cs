@@ -11,6 +11,6 @@ public class HomeEndpoint : InertiaEndpoint
         AllowAnonymous();
     }
 
-    public override async Task<IResult> HandleAsync(CancellationToken ct) =>
-        RenderAsync("Home/Index");
+    public override Task HandleAsync(CancellationToken ct) =>
+        RenderAsync("Home/Index", ct);
 }

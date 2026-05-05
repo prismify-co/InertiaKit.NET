@@ -32,13 +32,8 @@ public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
         return client;
     }
 
-     private static async Task<JsonDocument> Page(HttpResponseMessage r)
-     {
-         var content = await r.Content.ReadAsStringAsync();
-         if (content.Length == 0)
-             throw new InvalidOperationException($"Empty response body. Status: {(int)r.StatusCode}");
-         return JsonDocument.Parse(content);
-     }
+    private static async Task<JsonDocument> Page(HttpResponseMessage r) =>
+        JsonDocument.Parse(await r.Content.ReadAsStringAsync());
 
     // ── Home (no props) ───────────────────────────────────────────────────────
 

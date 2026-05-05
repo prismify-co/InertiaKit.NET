@@ -112,6 +112,50 @@ public class InertiaMiddlewareTests
         response.Headers.Contains("X-Inertia").Should().BeTrue();
     }
 
+    [Fact]
+    public async Task Direct_IResult_return_writes_the_inertia_page()
+    {
+        using var host = new HostBuilder()
+            .ConfigureWebHost(web =>
+            {
+                web.UseTestServer();
+                web.ConfigureServices(services =>
+                {
+                    services.AddRouting();
+                    services.AddInertia();
+                });
+                web.Configure(app =>
+                {
+                    app.UseRouting();
+                    app.UseInertia();
+                    app.UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapGet("/direct", (HttpContext ctx) =>
+                        {
+                            var inertia = ctx.RequestServices.GetRequiredService<IInertiaService>();
+                            return inertia.Render("Users/Index", new { count = 42 });
+                        });
+                    });
+                });
+            })
+            .Build();
+
+        await host.StartAsync();
+        var client = host.GetTestServer().CreateClient();
+        client.DefaultRequestHeaders.Add("X-Inertia", "true");
+        client.DefaultRequestHeaders.Add("X-Inertia-Version", "");
+
+        var response = await client.GetAsync("/direct");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        response.Headers.Contains("X-Inertia").Should().BeTrue();
+        doc.RootElement.GetProperty("component").GetString().Should().Be("Users/Index");
+        doc.RootElement.GetProperty("props").GetProperty("count").GetInt32().Should().Be(42);
+    }
+
     // ── Version mismatch ───────────────────────────────────────────────────
 
     [Fact]
