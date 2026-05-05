@@ -105,10 +105,14 @@ public sealed class InertiaMiddleware(RequestDelegate next, ILogger<InertiaMiddl
 
             // [O] Empty response — redirect back to a validated referer.
             // Use same-origin check to prevent open-redirect via a spoofed Referer header.
-            var referer = context.Request.Headers.Referer.ToString();
-            var target = Internal.InertiaService.IsSameOriginReferer(referer, context) ? referer : "/";
-            context.Response.StatusCode = StatusCodes.Status303SeeOther;
-            context.Response.Headers.Location = target;
+            // Only redirect if response hasn't already started (e.g., FastEndpoints auto-response).
+            if (!context.Response.HasStarted)
+            {
+                var referer = context.Request.Headers.Referer.ToString();
+                var target = Internal.InertiaService.IsSameOriginReferer(referer, context) ? referer : "/";
+                context.Response.StatusCode = StatusCodes.Status303SeeOther;
+                context.Response.Headers.Location = target;
+            }
             return;
         }
 

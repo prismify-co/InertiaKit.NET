@@ -1,4 +1,5 @@
 using Inertia.NET.FastEndpoints;
+using Microsoft.AspNetCore.Http;
 
 namespace FastEndpointsExample.Endpoints;
 
@@ -14,9 +15,8 @@ public class UsersEndpoint : InertiaEndpoint
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
-    {
-        await RenderAsync("Users/Index", new Dictionary<string, object?>
+    public override async Task<IResult> HandleAsync(CancellationToken ct) =>
+        RenderAsync("Users/Index", new Dictionary<string, object?>
         {
             // Eager: resolved on every request
             ["users"] = UserRepository.All(),
@@ -29,8 +29,7 @@ public class UsersEndpoint : InertiaEndpoint
 
             // Once: evaluated once, cached client-side thereafter
             ["countries"] = Inertia.Once(() => CountryRepository.All()),
-        }, ct);
-    }
+        });
 }
 
 /// <summary>POST /users with typed request body.</summary>
@@ -48,21 +47,21 @@ public class CreateUserEndpoint : InertiaEndpoint<CreateUserRequest>
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CreateUserRequest req, CancellationToken ct)
+    public override async Task<IResult> HandleAsync(CreateUserRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.Name))
         {
             HttpContext.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
-            await RenderAsync("Users/Create", new
+            return RenderAsync("Users/Create", new
             {
                 errors = new { name = "Name is required." },
-            }, ct);
-            return;
+            });
         }
 
         // PRG: redirect after successful creation
         HttpContext.Response.StatusCode = StatusCodes.Status303SeeOther;
         HttpContext.Response.Headers.Location = "/users";
+        return Results.Empty;
     }
 }
 
@@ -77,14 +76,12 @@ public class UsersDashboardEndpoint : InertiaEndpoint
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
-    {
-        await RenderAsync("Users/Dashboard", new Dictionary<string, object?>
+    public override async Task<IResult> HandleAsync(CancellationToken ct) =>
+        RenderAsync("Users/Dashboard", new Dictionary<string, object?>
         {
             ["summary"]    = new { total = UserRepository.All().Count },
             ["activities"] = Inertia.Merge(ActivityFeed.Page(1)).MatchOn("id"),
-        }, ct);
-    }
+        });
 }
 
 // ── Stub domain ───────────────────────────────────────────────────────────────
