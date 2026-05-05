@@ -15,6 +15,19 @@
     <Nullable>enable</Nullable>
     <PackageId>InertiaKit.NET.FastEndpoints</PackageId>
     <RootNamespace>InertiaKit.FastEndpoints</RootNamespace>
+    <Authors>InertiaKit</Authors>
+    <Description>FastEndpoints integration for InertiaKit for .NET built on the ASP.NET Core adapter.</Description>
+    <PackageTags>inertia inertiajs dotnet aspnetcore fastendpoints</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Prismify-co/InertiaKit.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Prismify-co/InertiaKit.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+  </ItemGroup>
 
 </Project>

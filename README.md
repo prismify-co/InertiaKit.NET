@@ -1,16 +1,22 @@
-# InertiaKit.NET
+# InertiaKit for .NET
 
-InertiaKit for .NET is an Inertia.js server adapter for ASP.NET Core. This repository contains the core protocol model, the ASP.NET Core adapter, a FastEndpoints integration layer, example applications, and protocol-focused tests.
+InertiaKit for .NET is an Inertia.js server adapter for ASP.NET Core. It keeps the C# API surface under `InertiaKit.*` while using the `InertiaKit.NET.*` naming family for the repository, solution, and NuGet packages.
 
-The repository, solution, and NuGet artifacts use the `InertiaKit.NET.*` naming family. The public C# namespaces use `InertiaKit.*`.
+This repository contains the core protocol model, the ASP.NET Core adapter, a FastEndpoints integration layer, example applications, and protocol-focused tests.
 
-The current solution targets .NET 10 and is organized around three runtime packages:
+Repository: https://github.com/Prismify-co/InertiaKit.NET
 
-| Project | Purpose |
-| --- | --- |
-| `src/InertiaKit.NET.Core` | Page object model, request parsing, prop abstractions, and prop resolution/serialization support. |
-| `src/InertiaKit.NET.AspNetCore` | Dependency injection, middleware, rendering service, shared props, SSR bridge, flash/errors integration, and MVC/Minimal API support. |
-| `src/InertiaKit.NET.FastEndpoints` | FastEndpoints-specific registration and base endpoint types built on top of the ASP.NET Core adapter. |
+## Packages
+
+The current solution targets .NET 10 and is organized around three publishable packages:
+
+| NuGet Package | Namespace Root | Purpose |
+| --- | --- | --- |
+| `InertiaKit.NET.Core` | `InertiaKit.Core` | Page object model, request parsing, prop abstractions, and prop resolution/serialization support. |
+| `InertiaKit.NET.AspNetCore` | `InertiaKit.AspNetCore` | Dependency injection, middleware, rendering service, shared props, SSR bridge, flash/errors integration, and MVC/Minimal API support. |
+| `InertiaKit.NET.FastEndpoints` | `InertiaKit.FastEndpoints` | FastEndpoints-specific registration and base endpoint types built on top of the ASP.NET Core adapter. |
+
+Package metadata is configured directly in the library projects. Each package also embeds this README so the NuGet listing stays aligned with the repository docs.
 
 ## Supported Features
 
@@ -42,6 +48,14 @@ The implementation in this repository currently covers the core Inertia server-a
 | `examples/FastEndpointsExample` | FastEndpoints example covering endpoint-based rendering, once/deferred props, merge annotations, and PRG handling. |
 | `docs/research/` | Protocol and adapter research that informed the implementation. |
 | `InertiaKit.NET.slnx` | Solution entry point. |
+
+## Naming
+
+The naming split is intentional:
+
+- Use `InertiaKit for .NET` in branding and documentation.
+- Use `InertiaKit.NET.*` for package IDs, project files, and the solution.
+- Use `InertiaKit.*` for C# namespaces so consumer code stays clean.
 
 ## How It Fits Together
 
