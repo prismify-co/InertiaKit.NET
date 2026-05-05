@@ -1,7 +1,7 @@
-using Inertia.NET.AspNetCore;
-using Inertia.NET.AspNetCore.Extensions;
-using Inertia.NET.Core;
-using Inertia.NET.Core.Abstractions;
+using InertiaKit.AspNetCore;
+using InertiaKit.AspNetCore.Extensions;
+using InertiaKit.Core;
+using InertiaKit.Core.Abstractions;
 
 // ── Application Setup ────────────────────────────────────────────────────────
 
@@ -90,7 +90,7 @@ sealed class AppInertiaHandler : HandleInertiaRequestsBase
             {
                 success = context.Request.Query["success"].ToString(),
             })
-            .AddOnce("appConfig", new { name = "Inertia.NET Demo", version = "1.0" });
+            .AddOnce("appConfig", new { name = "InertiaKit Demo", version = "1.0" });
     }
 }
 

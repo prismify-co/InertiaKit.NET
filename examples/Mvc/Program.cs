@@ -1,7 +1,7 @@
-using Inertia.NET.AspNetCore;
-using Inertia.NET.AspNetCore.Extensions;
-using Inertia.NET.Core;
-using Inertia.NET.Core.Abstractions;
+using InertiaKit.AspNetCore;
+using InertiaKit.AspNetCore.Extensions;
+using InertiaKit.Core;
+using InertiaKit.Core.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +55,7 @@ sealed class AppInertiaHandler : HandleInertiaRequestsBase
                     ? new { name = context.User.Identity.Name }
                     : null,
             })
-            .AddOnce("appConfig", new { name = "Inertia.NET MVC Demo" });
+            .AddOnce("appConfig", new { name = "InertiaKit MVC Demo" });
     }
 }
 

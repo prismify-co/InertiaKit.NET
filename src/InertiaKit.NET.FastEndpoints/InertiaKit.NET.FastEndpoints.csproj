@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\InertiaKit.NET.Core\InertiaKit.NET.Core.csproj" />
+    <ProjectReference Include="..\InertiaKit.NET.AspNetCore\InertiaKit.NET.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>InertiaKit.NET.FastEndpoints</PackageId>
+    <RootNamespace>InertiaKit.FastEndpoints</RootNamespace>
+  </PropertyGroup>
+
+</Project>

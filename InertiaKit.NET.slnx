@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples/FastEndpointsExample/FastEndpointsExample.csproj" />
+    <Project Path="examples/MinimalApi/MinimalApi.csproj" />
+    <Project Path="examples/Mvc/Mvc.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/InertiaKit.NET.AspNetCore/InertiaKit.NET.AspNetCore.csproj" />
+    <Project Path="src/InertiaKit.NET.Core/InertiaKit.NET.Core.csproj" />
+    <Project Path="src/InertiaKit.NET.FastEndpoints/InertiaKit.NET.FastEndpoints.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/InertiaKit.NET.AspNetCore.Tests/InertiaKit.NET.AspNetCore.Tests.csproj" />
+    <Project Path="tests/InertiaKit.NET.Core.Tests/InertiaKit.NET.Core.Tests.csproj" />
+    <Project Path="tests/InertiaKit.NET.E2E.FastEndpoints.Tests/InertiaKit.NET.E2E.FastEndpoints.Tests.csproj" />
+    <Project Path="tests/InertiaKit.NET.E2E.MinimalApi.Tests/InertiaKit.NET.E2E.MinimalApi.Tests.csproj" />
+    <Project Path="tests/InertiaKit.NET.E2E.Mvc.Tests/InertiaKit.NET.E2E.Mvc.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,4 +1,4 @@
-using Inertia.NET.FastEndpoints;
+using InertiaKit.FastEndpoints;
 namespace FastEndpointsExample.Endpoints;
 
 /// <summary>

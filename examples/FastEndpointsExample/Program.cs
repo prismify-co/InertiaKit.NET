@@ -1,5 +1,5 @@
 using FastEndpoints;
-using Inertia.NET.FastEndpoints.Extensions;
+using InertiaKit.FastEndpoints.Extensions;
 using FastEndpointsExample.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);

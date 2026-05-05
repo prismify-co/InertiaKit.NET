@@ -1,6 +1,6 @@
 # Inertia.js Protocol Research
 
-Research into the Inertia.js protocol, server-adapter contract, and .NET prior art — foundational input for the Inertia.NET domain model.
+Research into the Inertia.js protocol, server-adapter contract, and .NET prior art — foundational input for the InertiaKit for .NET domain model.
 
 ## Structure
 

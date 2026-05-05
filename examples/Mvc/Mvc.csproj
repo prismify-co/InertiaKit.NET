@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Inertia.NET.AspNetCore\Inertia.NET.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\InertiaKit.NET.AspNetCore\InertiaKit.NET.AspNetCore.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

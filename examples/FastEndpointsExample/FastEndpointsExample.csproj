@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Inertia.NET.FastEndpoints\Inertia.NET.FastEndpoints.csproj" />
+    <ProjectReference Include="..\..\src\InertiaKit.NET.FastEndpoints\InertiaKit.NET.FastEndpoints.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Inertia.NET.AspNetCore;
-using Inertia.NET.AspNetCore.Extensions;
+using InertiaKit.AspNetCore;
+using InertiaKit.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mvc.Controllers;
@@ -11,7 +11,7 @@ public class HomeController(IInertiaService inertia) : Controller
     {
         HttpContext.SetInertiaResult(inertia.Render("Home/Index", new
         {
-            greeting = "Welcome to Inertia.NET + MVC",
+            greeting = "Welcome to InertiaKit + MVC",
         }));
         return new EmptyResult();
     }

@@ -1,6 +1,6 @@
-using Inertia.NET.AspNetCore;
-using Inertia.NET.AspNetCore.Extensions;
-using Inertia.NET.Core.Props;
+using InertiaKit.AspNetCore;
+using InertiaKit.AspNetCore.Extensions;
+using InertiaKit.Core.Props;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mvc.Controllers;

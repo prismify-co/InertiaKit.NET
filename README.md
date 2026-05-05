@@ -1,14 +1,16 @@
-# Inertia.NET
+# InertiaKit.NET
 
-Inertia.NET is an Inertia.js server adapter for ASP.NET Core. This repository contains the core protocol model, the ASP.NET Core adapter, a FastEndpoints integration layer, example applications, and protocol-focused tests.
+InertiaKit for .NET is an Inertia.js server adapter for ASP.NET Core. This repository contains the core protocol model, the ASP.NET Core adapter, a FastEndpoints integration layer, example applications, and protocol-focused tests.
+
+The repository, solution, and NuGet artifacts use the `InertiaKit.NET.*` naming family. The public C# namespaces use `InertiaKit.*`.
 
 The current solution targets .NET 10 and is organized around three runtime packages:
 
 | Project | Purpose |
 | --- | --- |
-| `src/Inertia.NET.Core` | Page object model, request parsing, prop abstractions, and prop resolution/serialization support. |
-| `src/Inertia.NET.AspNetCore` | Dependency injection, middleware, rendering service, shared props, SSR bridge, flash/errors integration, and MVC/Minimal API support. |
-| `src/Inertia.NET.FastEndpoints` | FastEndpoints-specific registration and base endpoint types built on top of the ASP.NET Core adapter. |
+| `src/InertiaKit.NET.Core` | Page object model, request parsing, prop abstractions, and prop resolution/serialization support. |
+| `src/InertiaKit.NET.AspNetCore` | Dependency injection, middleware, rendering service, shared props, SSR bridge, flash/errors integration, and MVC/Minimal API support. |
+| `src/InertiaKit.NET.FastEndpoints` | FastEndpoints-specific registration and base endpoint types built on top of the ASP.NET Core adapter. |
 
 ## Supported Features
 
@@ -39,7 +41,7 @@ The implementation in this repository currently covers the core Inertia server-a
 | `examples/Mvc` | MVC example covering controller-based rendering, shared props, optional/always/deferred props, and redirect flows. |
 | `examples/FastEndpointsExample` | FastEndpoints example covering endpoint-based rendering, once/deferred props, merge annotations, and PRG handling. |
 | `docs/research/` | Protocol and adapter research that informed the implementation. |
-| `Inertia.NET.slnx` | Solution entry point. |
+| `InertiaKit.NET.slnx` | Solution entry point. |
 
 ## How It Fits Together
 
@@ -57,8 +59,9 @@ Choose the adapter that matches your host style.
 ### Minimal API / ASP.NET Core
 
 ```csharp
-using Inertia.NET.AspNetCore;
-using Inertia.NET.AspNetCore.Extensions;
+using InertiaKit.AspNetCore;
+using InertiaKit.AspNetCore.Extensions;
+using InertiaKit.Core.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,8 +133,8 @@ In controllers, return `inertia.Render(...)` directly or store the result with `
 
 ```csharp
 using FastEndpoints;
-using Inertia.NET.FastEndpoints;
-using Inertia.NET.FastEndpoints.Extensions;
+using InertiaKit.FastEndpoints;
+using InertiaKit.FastEndpoints.Extensions;
 
 builder.Services.AddFastEndpoints();
 builder.Services.AddInertiaForFastEndpoints(options =>
@@ -197,13 +200,13 @@ The example applications are the best place to see end-to-end usage:
 Build the solution:
 
 ```bash
-dotnet build Inertia.NET.slnx
+dotnet build InertiaKit.NET.slnx
 ```
 
 Run the full test suite:
 
 ```bash
-dotnet test Inertia.NET.slnx
+dotnet test InertiaKit.NET.slnx
 ```
 
 Run an example app:
