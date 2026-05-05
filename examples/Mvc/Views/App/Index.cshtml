@@ -1,0 +1,21 @@
+@{
+    Layout = null;
+    var pageJson = Context.Items["InertiaPage"] as string ?? "{}";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inertia.NET — MVC</title>
+    @* Vite HMR (dev) — replace with <script src="..."> tags for production *@
+    @* <script type="module" src="@@vite/client"></script> *@
+    @* <script type="module" src="~/js/app.js"></script> *@
+</head>
+<body>
+    <div id="app"></div>
+    <script type="application/json" id="app-data">@Html.Raw(pageJson)</script>
+    @* Production: link your built JS/CSS bundle here *@
+    @* <script src="~/build/assets/app.js"></script> *@
+</body>
+</html>
