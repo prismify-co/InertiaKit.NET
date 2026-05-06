@@ -24,10 +24,13 @@ namespace InertiaKit.AspNetCore;
 ///                 : null,
 ///         });
 ///
-///         // CSRF token — share as a prop so the Inertia client can include it
-///         // in AJAX requests. ASP.NET Core's antiforgery middleware validates it.
-///         // Requires services.AddAntiforgery() and IAntiforgery injected here.
-///         // shared.Add("csrf", antiforgery.GetAndStoreTokens(context).RequestToken);
+///         // If you want Inertia's built-in XSRF header handling, issue the
+///         // client-readable XSRF cookie on each page response.
+///         // Requires services.AddInertiaAntiforgery() or services.AddAntiforgery().
+///         // context.SetXsrfTokenCookie();
+///
+///         // If your client reads the request token from props instead, share it explicitly.
+///         // shared.AddCsrfToken(context);
 ///     }
 /// }
 /// </code>
@@ -54,9 +57,9 @@ public abstract class HandleInertiaRequestsBase
     /// Typical shared props: current user, auth state, flash messages, CSRF token.
     /// </para>
     /// <para>
-    /// CSRF note: ASP.NET Core handles CSRF validation via the antiforgery middleware.
-    /// To expose the token to the Inertia client, inject <c>IAntiforgery</c> and share
-    /// the request token as a prop (e.g. <c>shared.Add("csrf", tokens.RequestToken)</c>).
+    /// CSRF note: ASP.NET Core handles validation via its antiforgery services.
+    /// Use <c>context.SetXsrfTokenCookie()</c> for Inertia's built-in XSRF cookie flow,
+    /// or <c>shared.AddCsrfToken(context)</c> when your client expects the request token as a prop.
     /// </para>
     /// </summary>
     public virtual void Share(IInertiaShareBuilder shared, HttpContext context) { }

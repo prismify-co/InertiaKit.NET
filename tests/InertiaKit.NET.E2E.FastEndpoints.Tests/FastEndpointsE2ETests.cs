@@ -13,7 +13,9 @@ namespace InertiaKit.E2E.FastEndpoints.Tests;
 public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
-    private HttpClient InertiaClient(string version = "1.0.0")
+    private const string CurrentVersion = "1.2.0";
+
+    private HttpClient InertiaClient(string version = CurrentVersion)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -47,7 +49,7 @@ public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
         response.Headers.Contains("X-Inertia").Should().BeTrue();
         page.RootElement.GetProperty("component").GetString().Should().Be("Home/Index");
-        page.RootElement.GetProperty("version").GetString().Should().Be("1.0.0");
+        page.RootElement.GetProperty("version").GetString().Should().Be(CurrentVersion);
     }
 
     [Fact]
@@ -199,6 +201,15 @@ public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
 
         page.RootElement.TryGetProperty("matchPropsOn", out var matchOn).Should().BeTrue();
         matchOn.EnumerateArray().Select(e => e.GetString()).Should().Contain("id");
+    }
+
+    [Fact]
+    public async Task GET_users_dashboard_encrypts_history_when_endpoint_requests_it()
+    {
+        var response = await InertiaClient().GetAsync("/users/dashboard");
+        var page = await Page(response);
+
+        page.RootElement.GetProperty("encryptHistory").GetBoolean().Should().BeTrue();
     }
 
     // ── Version mismatch ──────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using InertiaKit.AspNetCore.Internal;
 using InertiaKit.Core.Abstractions;
 using InertiaKit.Core.Serialization;
@@ -34,6 +35,30 @@ public static class ServiceCollectionExtensions
             var options = sp.GetRequiredService<IOptions<InertiaOptions>>().Value;
             if (!string.IsNullOrWhiteSpace(options.SsrUrl))
                 client.BaseAddress = new Uri(options.SsrUrl);
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers ASP.NET Core antiforgery services with Inertia-friendly defaults.
+    /// This configures the request header name expected by the Inertia browser client
+    /// while leaving the normal ASP.NET Core antiforgery cookie in place.
+    /// </summary>
+    public static IServiceCollection AddInertiaAntiforgery(
+        this IServiceCollection services,
+        Action<InertiaAntiforgeryOptions>? configure = null)
+    {
+        services.AddOptions<InertiaAntiforgeryOptions>();
+        if (configure is not null)
+            services.Configure(configure);
+
+        var inertiaOptions = new InertiaAntiforgeryOptions();
+        configure?.Invoke(inertiaOptions);
+
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = inertiaOptions.HeaderName;
         });
 
         return services;

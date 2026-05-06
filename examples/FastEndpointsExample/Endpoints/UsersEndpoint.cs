@@ -70,6 +70,7 @@ public class UsersDashboardEndpoint : InertiaEndpoint
     {
         Get("/users/dashboard");
         AllowAnonymous();
+        WithEncryptHistory();
     }
 
     public override Task HandleAsync(CancellationToken ct) =>

@@ -173,6 +173,31 @@ public class InertiaMiddlewareTests
     }
 
     [Fact]
+    public async Task Non_inertia_request_uses_vite_development_server_assets_when_configured()
+    {
+        using var host = BuildHost(configure: options =>
+        {
+            options.AssetShell.Enabled = true;
+            options.AssetShell.StylesheetHrefs.Add("/build/app.css");
+            options.AssetShell.ModuleScriptHrefs.Add("/build/app.js");
+            options.AssetShell.DevelopmentServerUrl = "http://127.0.0.1:5173";
+            options.AssetShell.DevelopmentModuleEntrypoints.Add("/src/app.jsx");
+        });
+        await host.StartAsync();
+        var client = host.GetTestClient();
+
+        var response = await client.GetAsync("/users");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+        body.Should().Contain("type=\"module\" src=\"http://127.0.0.1:5173/@vite/client\"");
+        body.Should().Contain("type=\"module\" src=\"http://127.0.0.1:5173/src/app.jsx\"");
+        body.Should().NotContain("href=\"/build/app.css\"");
+        body.Should().NotContain("type=\"module\" src=\"/build/app.js\"");
+    }
+
+    [Fact]
     public async Task Asset_shell_renderer_takes_precedence_over_mvc_renderer_when_enabled()
     {
         using var host = BuildHost(

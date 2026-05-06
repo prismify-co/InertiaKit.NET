@@ -32,37 +32,43 @@ onMounted(() => {
 <template>
   <Head title="Dashboard" />
 
-  <AppShell
-    eyebrow="Deferred sidebar"
-    title="Users dashboard"
-    description="The server ships the dashboard frame first, then Vue asks Inertia for the deferred recent-users sidebar without reloading the page."
-  >
+  <AppShell>
+    <section class="page-hero">
+      <div class="page-hero__body">
+        <p class="eyebrow">Deferred sidebar</p>
+        <h1>Users dashboard</h1>
+        <p class="page-subtitle">The server ships the dashboard frame first, then Vue asks Inertia for the deferred recent-users sidebar without reloading the page.</p>
+      </div>
+    </section>
+
     <section class="stats-grid">
-      <article class="panel stat-card">
+      <article class="stat-card">
         <p class="section-label">Known users</p>
         <strong>{{ summary.total ?? 0 }}</strong>
       </article>
 
-      <article class="panel stat-card">
+      <article class="stat-card">
         <p class="section-label">Feed strategy</p>
         <strong>Merged activity feed</strong>
       </article>
     </section>
 
     <section class="card-grid">
-      <article class="panel" data-testid="vue-dashboard-recent-users">
-        <h2 class="section-heading">Recent users</h2>
+      <article data-testid="vue-dashboard-recent-users">
+        <header><strong>Recent users</strong></header>
 
         <ul v-if="recentUsers" class="stack-list">
-          <li v-for="user in recentUsers" :key="user.id">{{ user.name }}</li>
+          <li v-for="user in recentUsers" :key="user.id" class="list-row">
+            <strong>{{ user.name }}</strong>
+          </li>
         </ul>
         <p v-else class="loading-pill" data-testid="vue-dashboard-loading">Fetching deferred sidebar data…</p>
       </article>
 
-      <article class="panel">
-        <h2 class="section-heading">Activity feed</h2>
+      <article>
+        <header><strong>Activity feed</strong></header>
         <ul class="stack-list">
-          <li v-for="entry in feed" :key="entry.id" class="activity-row">
+          <li v-for="entry in feed" :key="entry.id" class="list-row">
             <strong>{{ entry.action }}</strong>
             <span class="muted-text">event #{{ entry.id }}</span>
           </li>

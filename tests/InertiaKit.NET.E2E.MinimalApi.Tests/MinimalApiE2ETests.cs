@@ -14,6 +14,16 @@ namespace InertiaKit.E2E.MinimalApi.Tests;
 public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
+    private const string CurrentVersion = "1.2.0";
+
+    private static void AssertGuestAuth(JsonElement auth)
+    {
+        if (auth.TryGetProperty("user", out var user))
+        {
+            user.ValueKind.Should().Be(JsonValueKind.Null);
+        }
+    }
+
     private InertiaE2EClient Client =>
         new(factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -34,7 +44,7 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
         response.Headers.Contains("X-Inertia").Should().BeFalse("X-Inertia must not be set on HTML responses");
 
         page.RootElement.GetProperty("component").GetString().Should().Be("Home/Index");
-        page.RootElement.GetProperty("version").GetString().Should().Be("1.0.0");
+        page.RootElement.GetProperty("version").GetString().Should().Be(CurrentVersion);
     }
 
     [Fact]
@@ -65,7 +75,7 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
 
         page.RootElement.GetProperty("component").GetString().Should().Be("Home/Index");
         page.RootElement.GetProperty("url").GetString().Should().Be("/");
-        page.RootElement.GetProperty("version").GetString().Should().Be("1.0.0");
+        page.RootElement.GetProperty("version").GetString().Should().Be(CurrentVersion);
     }
 
     [Fact]
@@ -76,9 +86,9 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
         var props = page.RootElement.GetProperty("props");
 
         props.TryGetProperty("users", out var users).Should().BeTrue();
-        users.GetArrayLength().Should().Be(2);
-        users[0].GetProperty("name").GetString().Should().Be("Alice");
-        props.GetProperty("total").GetInt32().Should().Be(2);
+        users.GetArrayLength().Should().Be(4);
+        users[0].GetProperty("name").GetString().Should().Be("Maya Chen");
+        props.GetProperty("total").GetInt32().Should().Be(4);
     }
 
     [Fact]
@@ -89,6 +99,45 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
 
         page.RootElement.GetProperty("props")
             .TryGetProperty("auth", out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task POST_demo_sign_in_redirects_to_authenticated_page_and_sets_shared_user()
+    {
+        var client = Client;
+
+        var signIn = await client.PostInertia("/auth/demo-sign-in");
+
+        ((int)signIn.StatusCode).Should().Be(303);
+        signIn.Headers.Location?.ToString().Should().Be("/me");
+
+        var accountResponse = await client.GetInertia("/me");
+        var page = await InertiaE2EClient.ParsePageObject(accountResponse);
+        var user = page.RootElement.GetProperty("props").GetProperty("auth").GetProperty("user");
+
+        page.RootElement.GetProperty("component").GetString().Should().Be("Account/Show");
+        page.RootElement.GetProperty("encryptHistory").GetBoolean().Should().BeTrue();
+        user.GetProperty("name").GetString().Should().Be("Maya Chen");
+        user.GetProperty("email").GetString().Should().Be("maya.chen@northstar.example");
+        user.GetProperty("role").GetString().Should().Be("Launch Director");
+    }
+
+    [Fact]
+    public async Task POST_demo_sign_out_clears_authenticated_user_for_follow_up_requests()
+    {
+        var client = Client;
+
+        await client.PostInertia("/auth/demo-sign-in");
+        var signOut = await client.PostInertia("/auth/demo-sign-out");
+
+        ((int)signOut.StatusCode).Should().Be(303);
+        signOut.Headers.Location?.ToString().Should().Be("/signed-out");
+
+        var response = await client.GetInertia("/");
+        var page = await InertiaE2EClient.ParsePageObject(response);
+        var auth = page.RootElement.GetProperty("props").GetProperty("auth");
+
+        AssertGuestAuth(auth);
     }
 
     [Fact]
@@ -211,6 +260,16 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
         mergeProps.EnumerateArray().Select(e => e.GetString()).Should().Contain("recentActivity");
     }
 
+    [Fact]
+    public async Task GET_signed_out_rotates_history_for_logout_flow()
+    {
+        var response = await Client.GetInertia("/signed-out");
+        var page = await InertiaE2EClient.ParsePageObject(response);
+
+        page.RootElement.GetProperty("clearHistory").GetBoolean().Should().BeTrue();
+        page.RootElement.GetProperty("props").GetProperty("greeting").GetString().Should().Be("You have signed out of the workspace");
+    }
+
     // ── Version mismatch ──────────────────────────────────────────────────────
 
     [Fact]
@@ -226,7 +285,7 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
     [Fact]
     public async Task GET_with_matching_version_returns_200()
     {
-        var response = await Client.GetInertia("/", version: "1.0.0");
+        var response = await Client.GetInertia("/", version: CurrentVersion);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -265,7 +324,7 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
             JsonContent.Create(new { Name = "Charlie", Email = "charlie@example.com" }));
 
         ((int)response.StatusCode).Should().Be(303);
-        response.Headers.Location?.ToString().Should().Be("/users");
+        response.Headers.Location?.ToString().Should().StartWith("/users?success=");
     }
 
     // ── External redirect — 409 ───────────────────────────────────────────────

@@ -18,11 +18,8 @@ internal sealed class AssetShellInertiaRenderer(IOptions<InertiaOptions> options
             ? string.Empty
             : $"<title>{WebUtility.HtmlEncode(options.DocumentTitle)}</title>";
 
-        var stylesheetTags = string.Join('\n', options.StylesheetHrefs.Select(href =>
-            $"<link rel=\"stylesheet\" href=\"{WebUtility.HtmlEncode(href)}\" />"));
-
-        var moduleScriptTags = string.Join('\n', options.ModuleScriptHrefs.Select(src =>
-            $"<script type=\"module\" src=\"{WebUtility.HtmlEncode(src)}\"></script>"));
+        var headAssetTags = InertiaAssetShellMarkup.BuildHeadAssetTags(options);
+        var bodyAssetTags = InertiaAssetShellMarkup.BuildBodyAssetTags(options);
 
         var configuredHeadTags = options.HeadTags.Count > 0
             ? string.Join('\n', options.HeadTags)
@@ -44,14 +41,14 @@ internal sealed class AssetShellInertiaRenderer(IOptions<InertiaOptions> options
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             {{titleTag}}
-            {{stylesheetTags}}
+            {{headAssetTags}}
             {{configuredHeadTags}}
             {{ssrHead}}
         </head>
         <body>
             <div id="{{appElementId}}">{{appContent}}</div>
             <script type="application/json" id="{{pageDataElementId}}">{{context.PageJson}}</script>
-            {{moduleScriptTags}}
+            {{bodyAssetTags}}
         </body>
         </html>
         """;

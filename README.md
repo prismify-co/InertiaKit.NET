@@ -35,7 +35,9 @@ The implementation in this repository currently covers the core Inertia server-a
 - Same-origin back redirects via `IInertiaService.Back(...)`.
 - Prefetch short-circuit handling.
 - Optional server-side rendering through a Node SSR gateway.
-- Page metadata flags such as remembered state, scroll regions, history encryption, and fragment preservation.
+- Page metadata flags such as remembered state, scroll regions, history encryption, clear-history rotation, and fragment preservation.
+- Route-level and global history-encryption controls for Minimal API, MVC, and FastEndpoints hosts.
+- Opt-in antiforgery helpers for Inertia-friendly XSRF cookies and shared CSRF props.
 
 ## Solution Layout
 
@@ -100,7 +102,8 @@ app.MapGet("/dashboard", (IInertiaService inertia) =>
         ["topUsers"] = inertia.Optional(() => UserRepository.Top(10)),
         ["monthlyChart"] = inertia.Defer(() => Analytics.MonthlyData(), "charts"),
         ["activity"] = inertia.Merge(ActivityFeed.Page(1)).MatchOn("id"),
-    }));
+    }))
+    .WithEncryptHistory();
 
 app.Run();
 
@@ -129,6 +132,7 @@ The example React and Vue clients resolve page components from `ClientApp/src/Pa
 ```csharp
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
+builder.Services.AddInertiaAntiforgery();
 builder.Services.AddInertia(options =>
 {
     options.RootView = "App";
@@ -209,20 +213,57 @@ The main application-facing API lives on `IInertiaService`:
 - `WithClearHistory()`
 - `WithPreserveFragment()`
 
+## History And Antiforgery
+
+Use the history helpers when sensitive page state should not remain readable in browser history:
+
+- Set `options.History.Encrypt = true` for an app-wide default.
+- Call `.WithEncryptHistory()` on a Minimal API endpoint or route group.
+- Call `.WithClearHistory()` on a logout or session-expired endpoint.
+- Apply `[EncryptHistory]` to an MVC action or controller.
+- Apply `[ClearHistory]` to an MVC action or controller.
+- Call `WithEncryptHistory()` or `WithClearHistory()` inside a FastEndpoints `Configure()` method.
+
+For logout flows that render a final page after the session is revoked, prefer setting `clearHistory` on that rendered response so previously encrypted entries cannot be decrypted after the user goes back:
+
+```csharp
+app.MapGet("/signed-out", (IInertiaService inertia) =>
+    inertia.Render("Home/Index", new { greeting = "You have been signed out" }))
+    .WithClearHistory();
+```
+
+Use the antiforgery helpers when you want the Inertia browser client to send `X-XSRF-TOKEN` automatically:
+
+```csharp
+builder.Services.AddInertiaAntiforgery();
+
+sealed class AppInertiaHandler : HandleInertiaRequestsBase
+{
+    public override void Share(IInertiaShareBuilder shared, HttpContext context)
+    {
+        context.SetXsrfTokenCookie();
+        shared.AddCsrfToken(context);
+    }
+}
+```
+
+`SetXsrfTokenCookie()` enables the browser client's cookie-to-header flow. `AddCsrfToken(context)` is available when your client reads the request token from props instead of the XSRF cookie.
+
 ## Examples
 
 The example applications are the best place to see end-to-end usage:
 
-- [examples/MinimalApi](examples/MinimalApi) shows shared props, inline validation errors, external redirects, optional/deferred props, and merge annotations.
+- [examples/MinimalApi](examples/MinimalApi) shows shared props, a demo authenticated account flow, inline validation errors, external redirects, optional/deferred props, and merge annotations.
 - [examples/Mvc](examples/Mvc) shows MVC controller integration, shared props, partial reload behavior, and deferred/merge props.
 - [examples/FastEndpointsExample](examples/FastEndpointsExample) shows FastEndpoints base endpoints, once props, deferred props, `MatchOn("id")` merge hints, and the built-in asset-shell renderer for first visits.
 
-Two of those examples now include real browser-side Inertia clients:
+All three examples now ship browser assets for first visits and interactive demo development:
 
 - [examples/MinimalApi](examples/MinimalApi) mounts a React client from `ClientApp/` and exercises client-side visits, inline validation, and deferred dashboard data.
 - [examples/Mvc](examples/Mvc) mounts a Vue client from `ClientApp/` and exercises client-side visits, PRG validation, redirected flash state, and deferred sidebar data.
+- [examples/FastEndpointsExample](examples/FastEndpointsExample) builds a lightweight Vite-powered asset-shell client from `ClientApp/` for the FastEndpoints sample.
 
-The FastEndpoints example remains server-adapter focused and does not currently ship a framework-specific Inertia client bundle, but it now uses the built-in asset-shell option for its initial HTML document.
+The FastEndpoints example remains server-adapter focused rather than framework-specific, but it now follows the same frontend build and HMR loop as the other demos.
 
 ## Running the Repo
 
@@ -239,7 +280,7 @@ npm install
 npm run playwright:install
 ```
 
-Build the React and Vue example clients:
+Build the example clients:
 
 ```bash
 npm run build:frontends
@@ -259,6 +300,36 @@ dotnet run --project examples/Mvc/Mvc.csproj
 dotnet run --project examples/FastEndpointsExample/FastEndpointsExample.csproj
 ```
 
+## HMR In The Demos
+
+The demo applications keep built assets configured by default, so plain `dotnet run` and the automated tests continue to use the checked-in bundles.
+
+To opt into Vite HMR for a demo, start its frontend dev server in one terminal:
+
+```bash
+npm run dev:minimalapi
+npm run dev:mvc
+npm run dev:fastendpoints
+```
+
+Those Vite ports are asset servers, not the app entrypoint. Opening `http://127.0.0.1:5173` directly will not show the demo because there is no standalone `index.html`; the ASP.NET backend still serves the HTML document and points it at the Vite modules.
+
+Then start the matching backend with the development asset server enabled in another terminal:
+
+```bash
+INERTIA_USE_VITE_DEV_SERVER=true dotnet watch --project examples/MinimalApi/MinimalApi.csproj run
+INERTIA_USE_VITE_DEV_SERVER=true dotnet watch --project examples/Mvc/Mvc.csproj run
+INERTIA_USE_VITE_DEV_SERVER=true dotnet watch --project examples/FastEndpointsExample/FastEndpointsExample.csproj run
+```
+
+Open the URL printed by `dotnet watch`, not the Vite port. In HMR mode the backend HTML will include `@vite/client` and the matching `/src/app.*` entrypoint from the dev server.
+
+The demos use fixed Vite ports so the backend knows where to load dev assets from:
+
+- Minimal API React: `http://127.0.0.1:5173`
+- MVC Vue: `http://127.0.0.1:5174`
+- FastEndpoints asset shell: `http://127.0.0.1:5175`
+
 Run the browser E2E suite:
 
 ```bash
@@ -272,9 +343,9 @@ The repository includes three layers of verification:
 - Core unit tests for request parsing, page object construction, merge hints, and lazy prop behavior.
 - ASP.NET Core middleware/protocol tests for status codes, redirects, version checks, error bags, flash handling, and protocol compliance.
 - Protocol-focused end-to-end example tests for Minimal API, MVC, and FastEndpoints behavior, including first-visit HTML shell rendering.
-- Playwright browser tests that drive the React Minimal API example and the Vue MVC example through real navigation, form submissions, redirects, flash state, and deferred prop loading.
+- Playwright browser tests that drive the React Minimal API, Vue MVC, and FastEndpoints browser shells through real navigation, form submissions, redirects, flash state, and deferred prop loading.
 
-Together, those layers validate both the server adapter contract and real browser-mounted Inertia clients for the React and Vue samples.
+Together, those layers validate both the server adapter contract and the browser-mounted demo clients across all three samples.
 
 ## Research Notes
 

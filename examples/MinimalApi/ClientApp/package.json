@@ -4,11 +4,13 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
+    "dev": "vite",
     "build": "vite build"
   },
   "dependencies": {
+    "@fontsource/geist-mono": "^5.2.7",
+    "@fontsource/geist-sans": "^5.2.5",
     "@inertiajs/react": "3.0.3",
-    "@picocss/pico": "^2.1.1",
     "react": "19.2.5",
     "react-dom": "19.2.5"
   },

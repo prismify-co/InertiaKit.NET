@@ -1,0 +1,17 @@
+{
+  "name": "@inertiakit/fastendpoints-client",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "^5.2.7",
+    "@fontsource/geist-sans": "^5.2.5"
+  },
+  "devDependencies": {
+    "vite": "8.0.10"
+  }
+}

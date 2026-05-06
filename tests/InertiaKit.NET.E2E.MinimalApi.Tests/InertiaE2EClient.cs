@@ -8,6 +8,8 @@ namespace InertiaKit.E2E.MinimalApi.Tests;
 /// </summary>
 internal sealed class InertiaE2EClient(HttpClient http)
 {
+    private const string CurrentVersion = "1.2.0";
+
     private static readonly JsonDocumentOptions JsonOpts = new()
     {
         CommentHandling = JsonCommentHandling.Skip,
@@ -15,7 +17,7 @@ internal sealed class InertiaE2EClient(HttpClient http)
 
     // ── Request helpers ───────────────────────────────────────────────────────
 
-    public Task<HttpResponseMessage> GetInertia(string url, string version = "1.0.0",
+    public Task<HttpResponseMessage> GetInertia(string url, string version = CurrentVersion,
         string? partialComponent = null, string? partialData = null, string? partialExcept = null,
         string? exceptOnceProps = null)
     {
@@ -29,7 +31,7 @@ internal sealed class InertiaE2EClient(HttpClient http)
         return http.SendAsync(req);
     }
 
-    public Task<HttpResponseMessage> PostInertia(string url, HttpContent? body = null, string version = "1.0.0")
+    public Task<HttpResponseMessage> PostInertia(string url, HttpContent? body = null, string version = CurrentVersion)
     {
         var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = body };
         req.Headers.Add("X-Inertia", "true");

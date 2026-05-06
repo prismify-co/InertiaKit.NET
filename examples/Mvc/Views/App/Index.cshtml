@@ -1,18 +1,29 @@
+@using InertiaKit.AspNetCore
+@using Microsoft.Extensions.Options
+@inject IOptions<InertiaOptions> InertiaOptionsAccessor
 @{
     Layout = null;
     var pageJson = Context.Items["InertiaPage"] as string ?? "{}";
+    var assetShell = InertiaOptionsAccessor.Value.AssetShell;
+    var title = assetShell.DocumentTitle ?? "InertiaKit Vue MVC";
+    var headAssetTags = InertiaAssetShellMarkup.BuildHeadAssetTags(assetShell);
+    var bodyAssetTags = InertiaAssetShellMarkup.BuildBodyAssetTags(assetShell);
+    var configuredHeadTags = assetShell.HeadTags.Count > 0
+        ? string.Join(Environment.NewLine, assetShell.HeadTags)
+        : string.Empty;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>InertiaKit Vue MVC</title>
-    <link rel="stylesheet" href="/build/app.css" />
+    <title>@title</title>
+    @Html.Raw(headAssetTags)
+    @Html.Raw(configuredHeadTags)
 </head>
 <body>
     <div id="app"></div>
     <script type="application/json" id="app-data">@Html.Raw(pageJson)</script>
-    <script type="module" src="/build/app.js"></script>
+    @Html.Raw(bodyAssetTags)
 </body>
 </html>

@@ -51,4 +51,27 @@ public static class EndpointExtensions
             await Task.CompletedTask;
         });
     }
+
+    /// <summary>
+    /// Enables or disables encrypted history for every Inertia response produced by the endpoint.
+    /// Explicit <see cref="InertiaResult.WithEncryptHistory(bool)"/> calls still win per response.
+    /// </summary>
+    public static TBuilder WithEncryptHistory<TBuilder>(this TBuilder builder, bool encrypt = true)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        builder.Add(endpointBuilder => endpointBuilder.Metadata.Add(new EncryptHistoryAttribute(encrypt)));
+        return builder;
+    }
+
+    /// <summary>
+    /// Enables or disables history-key rotation for every Inertia response produced by the endpoint.
+    /// Use this on logout or session-expired pages so previously encrypted history entries become unreadable.
+    /// Explicit <see cref="InertiaResult.WithClearHistory(bool)"/> calls still win per response.
+    /// </summary>
+    public static TBuilder WithClearHistory<TBuilder>(this TBuilder builder, bool clear = true)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        builder.Add(endpointBuilder => endpointBuilder.Metadata.Add(new ClearHistoryAttribute(clear)));
+        return builder;
+    }
 }

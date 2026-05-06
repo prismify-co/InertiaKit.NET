@@ -35,6 +35,20 @@ public abstract class InertiaEndpoint : EndpointWithoutRequest
     }
 
     /// <summary>
+    /// Applies encrypted-history metadata to the endpoint so every Inertia response
+    /// from this route defaults to the requested setting.
+    /// </summary>
+    protected void WithEncryptHistory(bool encrypt = true) =>
+        Description(builder => builder.WithEncryptHistory(encrypt));
+
+    /// <summary>
+    /// Applies clear-history metadata to the endpoint so logout or session-expired
+    /// pages can rotate the client's history key automatically.
+    /// </summary>
+    protected void WithClearHistory(bool clear = true) =>
+        Description(builder => builder.WithClearHistory(clear));
+
+    /// <summary>
     /// Send a 303 redirect without falling back to FastEndpoints' auto-204 response.
     /// </summary>
     protected async Task SeeOtherAsync(string location, CancellationToken ct = default)
@@ -73,6 +87,20 @@ public abstract class InertiaEndpoint<TRequest> : Endpoint<TRequest>
     {
         await Send.ResultAsync(Inertia.Render(component, props));
     }
+
+    /// <summary>
+    /// Applies encrypted-history metadata to the endpoint so every Inertia response
+    /// from this route defaults to the requested setting.
+    /// </summary>
+    protected void WithEncryptHistory(bool encrypt = true) =>
+        Description(builder => builder.WithEncryptHistory(encrypt));
+
+    /// <summary>
+    /// Applies clear-history metadata to the endpoint so logout or session-expired
+    /// pages can rotate the client's history key automatically.
+    /// </summary>
+    protected void WithClearHistory(bool clear = true) =>
+        Description(builder => builder.WithClearHistory(clear));
 
     /// <summary>
     /// Send a 303 redirect without falling back to FastEndpoints' auto-204 response.

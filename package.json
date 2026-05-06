@@ -4,11 +4,15 @@
   "type": "module",
   "workspaces": [
     "examples/MinimalApi/ClientApp",
-    "examples/Mvc/ClientApp"
+    "examples/Mvc/ClientApp",
+    "examples/FastEndpointsExample/ClientApp"
   ],
   "scripts": {
-    "build:frontends": "npm run build -w @inertiakit/minimalapi-react-client && npm run build -w @inertiakit/mvc-vue-client",
-    "playwright:install": "playwright install chromium",
+    "build:frontends": "npm run build -w @inertiakit/minimalapi-react-client && npm run build -w @inertiakit/mvc-vue-client && npm run build -w @inertiakit/fastendpoints-client",
+    "dev:minimalapi": "npm run dev -w @inertiakit/minimalapi-react-client",
+    "dev:mvc": "npm run dev -w @inertiakit/mvc-vue-client",
+    "dev:fastendpoints": "npm run dev -w @inertiakit/fastendpoints-client",
+    "playwright:install": "playwright install chromium webkit",
     "test:e2e:frontends": "npm run build:frontends && playwright test",
     "test:e2e:frontends:headed": "npm run build:frontends && playwright test --headed"
   },

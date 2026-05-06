@@ -30,11 +30,11 @@ export default function DocsCatchAll({
       <Head title={title} />
       <AppShell
         title={title}
-        subtitle="One optional catch-all file owns the whole documentation branch."
+        subtitle="One optional catch-all file owns the whole runbook branch while the route slug changes underneath it."
         actions={
           <>
             <Link href="/docs" role="button" className="secondary">
-              Docs index
+              Runbook index
             </Link>
             {featuredPage && (
               <Link href={featuredPage.href} role="button">
@@ -49,9 +49,9 @@ export default function DocsCatchAll({
           {/* Main article */}
           <article data-testid="react-docs-article">
             <header>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div className="article-header-row">
                 <div>
-                  <small>Guide overview</small>
+                  <small>Runbook overview</small>
                   <h2>What this route proves</h2>
                 </div>
                 <mark>{matchedExistingArticle ? 'Catalog entry' : 'Fallback page'}</mark>
@@ -82,7 +82,8 @@ export default function DocsCatchAll({
             <p className="pattern-box" data-testid="react-docs-pattern">{componentPattern}</p>
             <p>
               One page file can own the whole documentation branch while the server
-              emits a single, stable Inertia component string.
+              emits a single, stable Inertia component string. That is what lets this
+              practical runbook stay on one optional catch-all route.
             </p>
 
             <ol>
@@ -115,7 +116,7 @@ export default function DocsCatchAll({
 
             <article>
               <header>
-                <small>More routes</small>
+                <small>More runbooks</small>
                 <h4>Explore other paths</h4>
               </header>
               <nav>

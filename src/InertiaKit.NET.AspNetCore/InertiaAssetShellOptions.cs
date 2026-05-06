@@ -31,6 +31,19 @@ public sealed class InertiaAssetShellOptions
     /// <summary>Module script URLs to include as <c>&lt;script type="module"&gt;</c> tags.</summary>
     public IList<string> ModuleScriptHrefs { get; } = [];
 
+    /// <summary>
+    /// Optional development asset server origin, such as a Vite dev server.
+    /// When set together with <see cref="DevelopmentModuleEntrypoints"/>,
+    /// the asset shell emits dev-server module scripts instead of the built assets.
+    /// </summary>
+    public string? DevelopmentServerUrl { get; set; }
+
+    /// <summary>
+    /// Module entrypoints served by the development asset server, such as
+    /// <c>/src/app.jsx</c> or <c>/src/app.js</c>.
+    /// </summary>
+    public IList<string> DevelopmentModuleEntrypoints { get; } = [];
+
     /// <summary>Additional raw head tags to append after generated asset tags.</summary>
     public IList<string> HeadTags { get; } = [];
 }

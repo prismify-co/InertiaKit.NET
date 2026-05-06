@@ -1,4 +1,6 @@
 using InertiaKit.Core;
+using InertiaKit.AspNetCore.Internal;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -45,4 +47,34 @@ public static class HttpContextExtensions
     /// </summary>
     public static void FlashErrors(this HttpContext context, Dictionary<string, string> errors) =>
         context.FlashErrors(errors.ToDictionary(kvp => kvp.Key, kvp => new[] { kvp.Value }));
+
+    /// <summary>
+    /// Writes a client-readable XSRF cookie using the current antiforgery request token.
+    /// The Inertia browser client can then mirror this value into the configured header.
+    /// </summary>
+    public static string SetXsrfTokenCookie(this HttpContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var tokenSet = InertiaAntiforgeryTokenStore.GetOrCreate(context);
+        var options = context.RequestServices
+            .GetService<IOptions<InertiaAntiforgeryOptions>>()?.Value
+            ?? new InertiaAntiforgeryOptions();
+
+        context.Response.Cookies.Append(options.CookieName, tokenSet.RequestToken!, new CookieOptions
+        {
+            HttpOnly = false,
+            IsEssential = true,
+            Path = options.CookiePath,
+            SameSite = options.CookieSameSite,
+            Secure = options.CookieSecurePolicy switch
+            {
+                CookieSecurePolicy.Always => true,
+                CookieSecurePolicy.None => false,
+                _ => context.Request.IsHttps,
+            },
+        });
+
+        return tokenSet.RequestToken!;
+    }
 }

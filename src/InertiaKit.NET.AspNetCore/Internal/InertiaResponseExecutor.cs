@@ -76,14 +76,16 @@ internal sealed class InertiaResponseExecutor(ILogger<InertiaResponseExecutor> l
 
         var currentVersion = ResolveAndCacheVersion(context, handler, options) ?? string.Empty;
         var url = $"{context.Request.Path}{context.Request.QueryString}";
+        var encryptHistory = ResolveEncryptHistory(context, result, options);
+        var clearHistory = ResolveClearHistory(context, result);
 
         var pageObject = PageObjectBuilder.Build(
             result.Component,
             resolved,
             url,
             currentVersion,
-            result.EncryptHistory,
-            result.ClearHistory,
+            encryptHistory,
+            clearHistory,
             result.PreserveFragment,
             result.ScrollRegions,
             result.RememberedState);
@@ -234,6 +236,34 @@ internal sealed class InertiaResponseExecutor(ILogger<InertiaResponseExecutor> l
         throw new InvalidOperationException(
             "No IInertiaRenderer could render the initial HTML response. "
             + "Register a custom renderer or ensure the built-in renderers are available.");
+    }
+
+    private static bool? ResolveEncryptHistory(HttpContext context, InertiaResult result, InertiaOptions options)
+    {
+        if (result.EncryptHistory is not null)
+            return result.EncryptHistory;
+
+        var endpointSetting = context.GetEndpoint()?.Metadata
+            .OfType<EncryptHistoryAttribute>()
+            .LastOrDefault();
+        if (endpointSetting is not null)
+            return endpointSetting.Encrypt;
+
+        return options.History.Encrypt ? true : null;
+    }
+
+    private static bool? ResolveClearHistory(HttpContext context, InertiaResult result)
+    {
+        if (result.ClearHistory is not null)
+            return result.ClearHistory;
+
+        var endpointSetting = context.GetEndpoint()?.Metadata
+            .OfType<ClearHistoryAttribute>()
+            .LastOrDefault();
+        if (endpointSetting is not null)
+            return endpointSetting.Clear;
+
+        return null;
     }
 
     private static bool IsSsrExcluded(HttpContext context, InertiaOptions options)

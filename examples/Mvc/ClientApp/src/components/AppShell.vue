@@ -1,79 +1,83 @@
 <script setup>
+import { Link, usePage, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-
-defineProps({
-  eyebrow: {
-    type: String,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-});
 
 const page = usePage();
+const flashSuccess = computed(() => page.props.flash?.success ?? '');
+const authUser = computed(() => page.props.auth?.user);
 
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/Home/Privacy', label: 'Privacy' },
-  { href: '/users', label: 'Users' },
-  { href: '/users/dashboard', label: 'Dashboard' },
+const NAV_ITEMS = [
+  { href: '/', label: 'Overview' },
+  { href: '/docs/guides/getting-started', label: 'Runbooks' },
+  { href: '/users', label: 'Team' },
+  { href: '/dashboard', label: 'Insights' },
 ];
 
-const flashSuccess = computed(() => page.props.flash?.success ?? '');
-const appName = computed(() => page.props.appConfig?.name ?? 'InertiaKit Vue');
-const authLabel = computed(() => page.props.auth?.user?.name ?? 'guest');
+const navItems = computed(() =>
+  authUser.value
+    ? [...NAV_ITEMS, { href: '/me', label: 'Account' }]
+    : NAV_ITEMS
+);
 
-function isActive(href) {
-  return href === '/' ? page.url === href : page.url.startsWith(href);
+function isActive(currentUrl, href) {
+  return href === '/' ? currentUrl === href : currentUrl.startsWith(href);
 }
 </script>
 
 <template>
-  <div class="vue-app-frame" data-framework="vue">
-    <div class="vue-app-orb vue-app-orb--top" />
-    <div class="vue-app-orb vue-app-orb--bottom" />
+  <div>
+    <header class="shell-header">
+      <div class="container shell-header__inner">
+        <Link href="/" class="brand">
+          <strong>InertiaKit</strong>
+          <small>MVC + Vue</small>
+        </Link>
 
-    <main class="vue-shell">
-      <header class="vue-header panel">
-        <div>
-          <p class="eyebrow">{{ eyebrow }}</p>
-          <h1 class="hero-title">{{ title }}</h1>
-          <p class="hero-copy">{{ description }}</p>
-        </div>
-
-        <nav class="vue-nav" data-testid="vue-nav">
-          <Link
-            v-for="item in navItems"
-            :key="item.href"
-            :href="item.href"
-            :class="isActive(item.href) ? 'nav-link nav-link--active' : 'nav-link'"
-          >
-            {{ item.label }}
-          </Link>
+        <nav class="shell-nav" aria-label="Primary">
+          <ul data-testid="vue-nav">
+            <li v-for="item in navItems" :key="item.href">
+              <Link
+                :href="item.href"
+                class="nav-pill"
+                :aria-current="isActive(page.url, item.href) ? 'page' : undefined"
+              >
+                {{ item.label }}
+              </Link>
+            </li>
+          </ul>
         </nav>
-      </header>
 
-      <section class="vue-meta-row">
-        <div class="pill">{{ appName }}</div>
-        <div class="pill">Shared auth: {{ authLabel }}</div>
-      </section>
+        <div class="shell-session">
+          <small class="auth-label" data-testid="vue-auth-label">
+            {{ authUser ? authUser.name : 'guest' }}
+          </small>
+          <template v-if="authUser">
+            <Link href="/me" class="button button--secondary">Account</Link>
+            <button
+              type="button"
+              class="button button--secondary"
+              data-testid="vue-sign-out-button"
+              @click="router.post('/auth/demo-sign-out')"
+            >
+              Sign out
+            </button>
+          </template>
+          <button
+            v-else
+            type="button"
+            class="button"
+            data-testid="vue-sign-in-button"
+            @click="router.post('/auth/demo-sign-in')"
+          >
+            Sign in
+          </button>
+        </div>
+      </div>
+    </header>
 
-      <transition name="fade-slide">
-        <section v-if="flashSuccess" class="flash-banner panel" data-testid="vue-flash">
-          {{ flashSuccess }}
-        </section>
-      </transition>
-
-      <section class="vue-page-content">
-        <slot />
-      </section>
+    <main class="container page-shell">
+      <p v-if="flashSuccess" class="flash-banner" data-testid="vue-flash-success">{{ flashSuccess }}</p>
+      <slot />
     </main>
   </div>
 </template>

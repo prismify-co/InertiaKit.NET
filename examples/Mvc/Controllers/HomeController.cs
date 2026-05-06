@@ -1,24 +1,22 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using InertiaKit.AspNetCore;
 using InertiaKit.AspNetCore.Extensions;
-using Microsoft.AspNetCore.Mvc;
+using Mvc.Models;
 
 namespace Mvc.Controllers;
 
-public class HomeController(IInertiaService inertia) : Controller
+public class HomeController : Controller
 {
-    public IActionResult Index()
+    private readonly IInertiaService _inertia;
+
+    public HomeController(IInertiaService inertia)
     {
-        HttpContext.SetInertiaResult(inertia.Render("Home/Index", new
-        {
-            greeting = "Welcome to InertiaKit + MVC",
-        }));
-        return new EmptyResult();
+        _inertia = inertia;
     }
 
-    public IActionResult Privacy()
+    public IActionResult Index()
     {
-        HttpContext.SetInertiaResult(inertia.Render("Home/Privacy"));
-        return new EmptyResult();
+        return _inertia.Render("Home/Index", DemoPages.BuildHomePage(
+            greeting: "Launch operations workspace"));
     }
 }

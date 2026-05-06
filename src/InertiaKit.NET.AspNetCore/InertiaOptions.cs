@@ -15,6 +15,11 @@ public sealed class InertiaOptions
     public InertiaAssetShellOptions AssetShell { get; } = new();
 
     /// <summary>
+    /// Configures response-level browser history behavior.
+    /// </summary>
+    public InertiaHistoryOptions History { get; } = new();
+
+    /// <summary>
     /// Returns the current asset version string. Change this whenever assets
     /// are redeployed. Return null to disable version checking.
     /// </summary>

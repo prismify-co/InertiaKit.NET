@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-05-06
+
+### Added
+
+- History-security controls across all adapters: global history-encryption defaults, Minimal API route metadata, MVC action/controller attributes, and FastEndpoints helper methods for encrypted history and history-key rotation.
+- Antiforgery integration helpers for Inertia browser clients: `AddInertiaAntiforgery()`, `HttpContext.SetXsrfTokenCookie()`, and `IInertiaShareBuilder.AddCsrfToken(...)`.
+- Shared asset-shell markup builder used by the built-in HTML renderers, including Vite React Fast Refresh preamble injection for development `.jsx` entrypoints.
+- Expanded example coverage with authenticated profile flows, signed-out clear-history pages, shared design-system styling, optional catch-all docs routes, and a dedicated FastEndpoints Vite client source tree.
+
+### Changed
+
+- README expanded to document package boundaries, supported features, history controls, antiforgery helpers, and example workflows in more detail.
+- Example applications now share a more consistent design system and product-style navigation across Minimal API, MVC, and FastEndpoints demos.
+- Frontend and server-side tests now cover history encryption, clear-history flows, antiforgery helpers, and the richer example navigation flows.
+
+### Fixed
+
+- Initial HTML responses rendered through the asset shell no longer produce a blank page when the Vite dev server serves React `.jsx` entrypoints.
+
 ## [1.1.0] - 2026-05-05
 
 ### Added
@@ -39,3 +58,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 [1.1.0]: https://github.com/prismify-co/InertiaKit.NET/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/prismify-co/InertiaKit.NET/releases/tag/v1.0.0
+[1.2.0]: https://github.com/prismify-co/InertiaKit.NET/compare/v1.1.0...v1.2.0
