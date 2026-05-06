@@ -20,7 +20,10 @@ interface PageObject {
 
   // ── Loading Hints (optional) ──────────────────────────────────────────
   deferredProps?: Record<string, string[]>; // group → prop keys to load post-render
-  onceProps?:     string[];               // prop keys cached client-side; not resent after first visit
+  onceProps?:     Record<string, {
+    prop: string;
+    expiresAt?: number | null;
+  }>;                                     // once-prop key → cached prop path + optional expiry
 
   // ── Scroll Management (optional) ──────────────────────────────────────
   scrollRegions?:   Array<{ x: number; y: number }>; // per-region scroll positions
@@ -77,8 +80,21 @@ Maps group names to arrays of prop keys that the client should fetch after the i
 }
 ```
 
-### `onceProps` (string[], optional)
-Prop keys that the client caches after the first response and does not request again. The server marks them here; the client suppresses their keys in subsequent `X-Inertia-Partial-Data` requests. If the client detects a missing once-prop (e.g. after a hard reload) it will request it again.
+### `onceProps` (Record<string, { prop, expiresAt? }>, optional)
+Metadata for props that the client caches after the first response and does not request again until they expire or disappear from client state. The object is keyed by the once-prop name. Each value records the prop path the client should restore from its cache and may optionally include an absolute `expiresAt` timestamp in milliseconds.
+
+On subsequent visits the client sends the once-prop keys it already has in `X-Inertia-Except-Once-Props`. The server may omit those values from `props` while still returning their metadata in `onceProps`, allowing the client to merge the cached values back into the response.
+
+```json
+{
+  "onceProps": {
+    "appConfig": {
+      "prop": "appConfig",
+      "expiresAt": null
+    }
+  }
+}
+```
 
 ### `scrollRegions` (Array<{x,y}>, optional)
 Scroll positions for custom scrollable elements (those with CSS `overflow`). The client restores these positions on back/forward navigation.

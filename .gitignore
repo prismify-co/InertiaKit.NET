@@ -6,6 +6,12 @@
 # dotenv files
 .env
 
+# Node.js / Playwright
+node_modules/
+playwright-report/
+test-results/
+examples/**/wwwroot/build/
+
 # User-specific files
 *.rsuser
 *.suo

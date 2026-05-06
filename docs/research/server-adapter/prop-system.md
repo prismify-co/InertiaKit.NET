@@ -59,7 +59,7 @@ The client then issues a partial request for `heavyReport` after initial render.
 
 ### Once
 
-Sent in `props` on first visit only. On subsequent visits the key appears in `onceProps` but the value is absent — the client uses its cached copy. If the client loses state (hard reload) it will request the key again. Ideal for large static reference data.
+Sent in `props` on first visit only. On subsequent visits the key still appears in `onceProps`, but the value may be absent from `props` because the client has already advertised that key in `X-Inertia-Except-Once-Props` and will reuse its cached copy. If the client loses state (hard reload) it will request the key again. Ideal for large static reference data.
 
 ```csharp
 // In middleware Share():
@@ -68,12 +68,12 @@ shared.AddOnce("countries", () => db.Countries.OrderBy(c => c.Name).ToList());
 
 Page object on first visit:
 ```json
-{ "props": { "countries": [...] }, "onceProps": ["countries"] }
+{ "props": { "countries": [...] }, "onceProps": { "countries": { "prop": "countries", "expiresAt": null } } }
 ```
 
 Page object on subsequent visits:
 ```json
-{ "props": {}, "onceProps": ["countries"] }
+{ "props": {}, "onceProps": { "countries": { "prop": "countries", "expiresAt": null } } }
 ```
 
 ## Merge Strategies
@@ -144,5 +144,5 @@ If a user with `id: 5` already exists in the client state, it is replaced. Other
 | Optional | Only if requested | Only if in `Partial-Data` | Yes | In `props` |
 | Always | Always | **Always** | Yes | In `props` |
 | Deferred | Never on initial request | Via follow-up partial request | No | Key in `deferredProps` |
-| Once | First visit only | If client missing it | Yes | In `props` + key in `onceProps` |
+| Once | First visit only | If client missing it | Yes | In `props` + metadata entry in `onceProps` |
 | Merge variants | Same as source type | Same | Yes | In `props` + key in `mergeProps`/`prependProps`/`deepMergeProps` |

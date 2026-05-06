@@ -81,10 +81,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInertia(options =>
 {
-    options.RootView = "App";
     options.VersionResolver = () => "1.0.0";
+    options.AssetShell.Enabled = true;
+    options.AssetShell.DocumentTitle = "InertiaKit App";
+    options.AssetShell.StylesheetHrefs.Add("/build/app.css");
+    options.AssetShell.ModuleScriptHrefs.Add("/build/app.js");
 });
-
 builder.Services.AddInertiaHandler<AppInertiaHandler>();
 
 var app = builder.Build();
@@ -104,8 +106,6 @@ app.Run();
 
 sealed class AppInertiaHandler : HandleInertiaRequestsBase
 {
-    public override string RootView => "App";
-
     public override string? Version(HttpContext context) => "1.0.0";
 
     public override void Share(IInertiaShareBuilder shared, HttpContext context)
@@ -119,6 +119,10 @@ sealed class AppInertiaHandler : HandleInertiaRequestsBase
     }
 }
 ```
+
+For Minimal API or other non-MVC hosts, enabling `options.AssetShell` lets you serve the initial HTML shell without a Razor `.cshtml` file or a custom renderer class. If you need custom markup beyond that built-in shell, register your own `IInertiaRenderer`. MVC apps can keep using the built-in Razor-backed renderer.
+
+The example React and Vue clients resolve page components from `ClientApp/src/Pages` and support both exact component names such as `Users/Index` and dynamic file patterns such as `[slug]`, `[...slug]`, and `[[...slug]]`. That resolver behavior lives on the client side; the server adapter itself treats the Inertia component name as an opaque string.
 
 ### MVC
 
@@ -153,12 +157,16 @@ using InertiaKit.FastEndpoints.Extensions;
 builder.Services.AddFastEndpoints();
 builder.Services.AddInertiaForFastEndpoints(options =>
 {
-    options.RootView = "App";
     options.VersionResolver = () => "1.0.0";
+    options.AssetShell.Enabled = true;
+    options.AssetShell.DocumentTitle = "InertiaKit FastEndpoints";
+    options.AssetShell.StylesheetHrefs.Add("/fastendpoints/app.css");
+    options.AssetShell.ModuleScriptHrefs.Add("/fastendpoints/app.js");
 });
 
 var app = builder.Build();
 
+app.UseStaticFiles();
 app.UseInertiaWithFastEndpoints();
 app.UseFastEndpoints();
 
@@ -207,7 +215,14 @@ The example applications are the best place to see end-to-end usage:
 
 - [examples/MinimalApi](examples/MinimalApi) shows shared props, inline validation errors, external redirects, optional/deferred props, and merge annotations.
 - [examples/Mvc](examples/Mvc) shows MVC controller integration, shared props, partial reload behavior, and deferred/merge props.
-- [examples/FastEndpointsExample](examples/FastEndpointsExample) shows FastEndpoints base endpoints, once props, deferred props, and `MatchOn("id")` merge hints.
+- [examples/FastEndpointsExample](examples/FastEndpointsExample) shows FastEndpoints base endpoints, once props, deferred props, `MatchOn("id")` merge hints, and the built-in asset-shell renderer for first visits.
+
+Two of those examples now include real browser-side Inertia clients:
+
+- [examples/MinimalApi](examples/MinimalApi) mounts a React client from `ClientApp/` and exercises client-side visits, inline validation, and deferred dashboard data.
+- [examples/Mvc](examples/Mvc) mounts a Vue client from `ClientApp/` and exercises client-side visits, PRG validation, redirected flash state, and deferred sidebar data.
+
+The FastEndpoints example remains server-adapter focused and does not currently ship a framework-specific Inertia client bundle, but it now uses the built-in asset-shell option for its initial HTML document.
 
 ## Running the Repo
 
@@ -215,6 +230,19 @@ Build the solution:
 
 ```bash
 dotnet build InertiaKit.NET.slnx
+```
+
+Install the frontend tooling:
+
+```bash
+npm install
+npm run playwright:install
+```
+
+Build the React and Vue example clients:
+
+```bash
+npm run build:frontends
 ```
 
 Run the full test suite:
@@ -231,13 +259,22 @@ dotnet run --project examples/Mvc/Mvc.csproj
 dotnet run --project examples/FastEndpointsExample/FastEndpointsExample.csproj
 ```
 
+Run the browser E2E suite:
+
+```bash
+npm run test:e2e:frontends
+```
+
 ## Testing Strategy
 
 The repository includes three layers of verification:
 
 - Core unit tests for request parsing, page object construction, merge hints, and lazy prop behavior.
 - ASP.NET Core middleware/protocol tests for status codes, redirects, version checks, error bags, flash handling, and protocol compliance.
-- End-to-end example tests for Minimal API, MVC, and FastEndpoints behavior.
+- Protocol-focused end-to-end example tests for Minimal API, MVC, and FastEndpoints behavior, including first-visit HTML shell rendering.
+- Playwright browser tests that drive the React Minimal API example and the Vue MVC example through real navigation, form submissions, redirects, flash state, and deferred prop loading.
+
+Together, those layers validate both the server adapter contract and real browser-mounted Inertia clients for the React and Vue samples.
 
 ## Research Notes
 

@@ -6,6 +6,12 @@ This document captures the interfaces, records, and enums that the research sugg
 
 ```csharp
 // The canonical page object sent to and received from the client
+public interface IOncePropMetadata
+{
+    string Prop { get; }
+    long?  ExpiresAt { get; }
+}
+
 public interface IPageObject
 {
     string                                        Component       { get; }
@@ -21,7 +27,7 @@ public interface IPageObject
 
     // Loading hints
     IReadOnlyDictionary<string, IReadOnlyList<string>>? DeferredProps { get; }
-    IReadOnlyList<string>?                        OnceProps       { get; }
+    IReadOnlyDictionary<string, IOncePropMetadata>? OnceProps    { get; }
 
     // Navigation/scroll
     IReadOnlyList<ScrollRegion>?                  ScrollRegions   { get; }

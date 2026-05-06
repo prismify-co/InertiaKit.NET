@@ -35,7 +35,7 @@ A complete Inertia server adapter must fulfil the following responsibilities. Ea
 - Evaluate all shared prop factories registered via `Share()` on every Inertia request.
 - Evaluate shared-once prop factories and:
   - Include their values in `props` on first visit.
-  - Include their keys in `onceProps` on subsequent visits (so the server skips re-sending and the client keeps its cached value).
+  - Include metadata entries in `onceProps` on subsequent visits (so the server skips re-sending and the client keeps its cached value).
 
 ## E. Prop Resolution & Filtering
 
@@ -59,7 +59,7 @@ Build the page object with:
 - `version`: current asset version
 - `mergeProps`, `prependProps`, `deepMergeProps`, `matchPropsOn`: from any merge-annotated props
 - `deferredProps`: from any deferred-annotated props
-- `onceProps`: keys of once props not sent this request
+- `onceProps`: metadata entries for once props, keyed by prop name, including the prop path the client should restore from cache
 - `scrollRegions`, `rememberedState`, `encryptHistory`, `clearHistory`, `preserveFragment`: from response builder flags
 
 ## G. Response Serialization
