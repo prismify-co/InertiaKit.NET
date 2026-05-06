@@ -1,0 +1,17 @@
+{
+  "name": "@inertiakit/mvc-vue-client",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@inertiajs/vue3": "3.0.3",
+    "vue": "3.5.33"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.6",
+    "vite": "8.0.10"
+  }
+}

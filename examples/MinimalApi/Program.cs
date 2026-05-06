@@ -9,22 +9,45 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInertia(options =>
 {
-    options.RootView = "App";
     options.VersionResolver = () => "1.0.0";
+    options.AssetShell.Enabled = true;
+    options.AssetShell.DocumentTitle = "InertiaKit React MinimalApi";
+    options.AssetShell.StylesheetHrefs.Add("/build/app.css");
+    options.AssetShell.ModuleScriptHrefs.Add("/build/app.js");
 });
-
 builder.Services.AddInertiaHandler<AppInertiaHandler>();
 
 var app = builder.Build();
 
-app.UseInertia();
+app.UseStaticFiles();
 app.UseRouting();
+app.UseInertia();
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 
 app.MapGet("/", (IInertiaService inertia, HttpContext ctx) =>
 {
-    ctx.SetInertiaResult(inertia.Render("Home/Index"));
+    ctx.SetInertiaResult(inertia.Render("Home/Index", new
+    {
+        greeting = "React + Minimal API, wired through a real Inertia client",
+        highlights = new[]
+        {
+            "Client-side page navigation",
+            "Inline validation on mutation",
+            "Deferred dashboard data",
+            "Optional catch-all docs routes",
+        },
+    }));
+});
+
+app.MapGet("/docs", (IInertiaService inertia, HttpContext ctx) =>
+{
+    ctx.SetInertiaResult(inertia.Render("Docs/[[...page]]", DocsCatalog.Resolve(null)));
+});
+
+app.MapGet("/docs/{**page}", (string page, IInertiaService inertia, HttpContext ctx) =>
+{
+    ctx.SetInertiaResult(inertia.Render("Docs/[[...page]]", DocsCatalog.Resolve(page)));
 });
 
 // Eager props
@@ -32,6 +55,11 @@ app.MapGet("/users", (IInertiaService inertia, HttpContext ctx) =>
 {
     var users = UserRepository.All();
     ctx.SetInertiaResult(inertia.Render("Users/Index", new { users, total = users.Count }));
+});
+
+app.MapGet("/users/create", (IInertiaService inertia, HttpContext ctx) =>
+{
+    ctx.SetInertiaResult(inertia.Render("Users/Create"));
 });
 
 // Optional + Deferred + Merge props
@@ -125,6 +153,80 @@ static class ActivityFeed
         new { id = 1, action = "User created",   at = "2025-05-01" },
         new { id = 2, action = "Post published", at = "2025-05-02" },
     ];
+}
+
+static class DocsCatalog
+{
+    private sealed record DocsEntry(string Title, string Summary, string[] Highlights);
+
+    private static readonly Dictionary<string, DocsEntry> Entries = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["guides/getting-started"] = new(
+            "Getting started",
+            "Shows how an optional catch-all component name can back multiple nested documentation routes.",
+            [
+                "Server sends Docs/[[...page]] as the Inertia component name.",
+                "React resolves that name to a single optional catch-all page file.",
+                "Nested docs URLs still hydrate through the same mounted app shell.",
+            ]),
+        ["guides/testing/playwright"] = new(
+            "Playwright testing",
+            "Uses the same browser suite approach as the repo's React and Vue examples.",
+            [
+                "Client-side visits send X-Inertia requests.",
+                "Initial HTML still embeds the page object for first load hydration.",
+                "Deferred props stay available on the rest of the sample routes.",
+            ]),
+        ["reference/protocol/headers"] = new(
+            "Protocol headers",
+            "Maps nested docs slugs to practical Inertia protocol concepts without adding a separate page file for each article.",
+            [
+                "X-Inertia marks JSON visits.",
+                "X-Inertia-Version protects against stale assets.",
+                "X-Inertia-Except-Once-Props keeps once props cached client-side.",
+            ]),
+    };
+
+    public static object Resolve(string? rawPage)
+    {
+        var normalizedPath = rawPage?.Trim('/');
+        var segments = string.IsNullOrWhiteSpace(normalizedPath)
+            ? Array.Empty<string>()
+            : normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var slug = string.Join('/', segments);
+        DocsEntry? entry = null;
+        var found = segments.Length > 0 && Entries.TryGetValue(slug, out entry);
+
+        entry ??= new DocsEntry(
+            "Documentation index",
+            "Start at /docs, then open a nested slug like /docs/guides/getting-started to exercise the optional catch-all page resolver end to end.",
+            [
+                "The same page file handles /docs and deeper paths.",
+                "The resolver also understands single-segment and required catch-all patterns.",
+                "Unknown slugs still render through the same page component with fallback copy.",
+            ]);
+
+        var knownPages = Entries.Keys
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .Select(path => new
+            {
+                path,
+                href = $"/docs/{path}",
+            })
+            .ToArray();
+
+        return new
+        {
+            componentPattern = "Docs/[[...page]]",
+            slug = segments.Length == 0 ? null : slug,
+            segments,
+            title = entry.Title,
+            summary = entry.Summary,
+            highlights = entry.Highlights,
+            matchedExistingArticle = found,
+            knownPages,
+        };
+    }
 }
 
 // Required for WebApplicationFactory in E2E tests

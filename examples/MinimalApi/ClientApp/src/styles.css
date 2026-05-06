@@ -1,0 +1,164 @@
+/* Custom styles on top of Pico CSS */
+
+/* Sticky top bar — full-width background with a separator line */
+body > header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-background-color);
+}
+
+/* Brand two-line link in header */
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-decoration: none;
+  gap: 0;
+}
+
+.brand small {
+  opacity: 0.55;
+  font-size: 0.7em;
+  font-weight: 400;
+}
+
+/* Auth label */
+.auth-label {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+/* Action button row under hgroup */
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: calc(var(--pico-spacing) * -0.5);
+  margin-bottom: var(--pico-spacing);
+}
+
+.action-row a[role="button"],
+.action-row button {
+  margin-bottom: 0;
+}
+
+/* Field error helper text */
+.field-error {
+  display: block;
+  font-size: 0.85em;
+  color: var(--pico-del-color, #c0392b);
+  margin-top: 0.25rem;
+}
+
+/* User list row */
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+/* Activity row */
+.activity-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.activity-row:last-child {
+  border-bottom: none;
+}
+
+/* Chart bar row */
+.chart-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.chart-row:last-child {
+  border-bottom: none;
+}
+
+/* Docs two-column layout */
+.docs-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--pico-spacing);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .docs-layout {
+    grid-template-columns: 1fr 18rem;
+  }
+}
+
+/* Monospace code/pattern box */
+.pattern-box {
+  font-family: var(--pico-font-family-monospace);
+  background: var(--pico-code-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: var(--pico-spacing);
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Definition list rows */
+.dl-grid {
+  display: grid;
+  gap: 0;
+}
+
+.dl-grid div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.dl-grid div:last-child {
+  border-bottom: none;
+}
+
+.dl-grid dt {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.dl-grid dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Sidebar nav links with secondary label */
+.side-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.side-nav-link small {
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-weight: 400;
+}

@@ -36,20 +36,22 @@ public class UsersController(IInertiaService inertia) : Controller
 
     // POST /users — validation + PRG
     [HttpPost("")]
-    public IActionResult Store(CreateUserRequest req)
+    public async Task<IActionResult> Store()
     {
+        var req = await BindCreateUserRequest();
+
         if (string.IsNullOrWhiteSpace(req.Name))
         {
-            // Store errors in session for the next GET (session-based error flash)
-            TempData["errors"] = System.Text.Json.JsonSerializer.Serialize(
-                new { name = "Name is required." });
+            HttpContext.FlashErrors(new Dictionary<string, string>
+            {
+                ["name"] = "Name is required.",
+            });
 
             // Redirect back to the form (303)
             return RedirectToAction("Create");
         }
 
-        TempData["success"] = "User created!";
-        return RedirectToAction("Index");
+        return RedirectToAction("Index", new { success = "User created!" });
     }
 
     // GET /users/dashboard — deferred + merge props
@@ -63,6 +65,25 @@ public class UsersController(IInertiaService inertia) : Controller
             ["feed"] = inertia.Merge(ActivityFeed.Page(1)),
         }));
         return new EmptyResult();
+    }
+
+    private async Task<CreateUserRequest> BindCreateUserRequest()
+    {
+        if (Request.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var body = await Request.ReadFromJsonAsync<CreateUserRequest>();
+            return body ?? new CreateUserRequest(string.Empty, string.Empty);
+        }
+
+        if (Request.HasFormContentType)
+        {
+            var form = await Request.ReadFormAsync();
+            return new CreateUserRequest(
+                form["Name"].ToString(),
+                form["Email"].ToString());
+        }
+
+        return new CreateUserRequest(string.Empty, string.Empty);
     }
 }
 

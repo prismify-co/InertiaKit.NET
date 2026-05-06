@@ -11,12 +11,16 @@ builder.Services.AddFastEndpoints(cfg =>
 });
 builder.Services.AddInertiaForFastEndpoints(options =>
 {
-    options.RootView = "App";
     options.VersionResolver = () => "1.0.0";
+    options.AssetShell.Enabled = true;
+    options.AssetShell.DocumentTitle = "InertiaKit FastEndpoints";
+    options.AssetShell.StylesheetHrefs.Add("/fastendpoints/app.css");
+    options.AssetShell.ModuleScriptHrefs.Add("/fastendpoints/app.js");
 });
 
 var app = builder.Build();
 
+app.UseStaticFiles();
 app.UseInertiaWithFastEndpoints();
 app.UseFastEndpoints();
 

@@ -55,6 +55,10 @@ sealed class AppInertiaHandler : HandleInertiaRequestsBase
                     ? new { name = context.User.Identity.Name }
                     : null,
             })
+            .Add("flash", new
+            {
+                success = context.Request.Query["success"].ToString(),
+            })
             .AddOnce("appConfig", new { name = "InertiaKit MVC Demo" });
     }
 }

@@ -1,0 +1,18 @@
+{
+  "name": "inertiakit-net-frontend-tests",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "examples/MinimalApi/ClientApp",
+    "examples/Mvc/ClientApp"
+  ],
+  "scripts": {
+    "build:frontends": "npm run build -w @inertiakit/minimalapi-react-client && npm run build -w @inertiakit/mvc-vue-client",
+    "playwright:install": "playwright install chromium",
+    "test:e2e:frontends": "npm run build:frontends && playwright test",
+    "test:e2e:frontends:headed": "npm run build:frontends && playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1"
+  }
+}
