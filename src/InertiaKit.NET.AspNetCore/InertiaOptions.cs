@@ -2,8 +2,17 @@ namespace InertiaKit.AspNetCore;
 
 public sealed class InertiaOptions
 {
-    /// <summary>Name of the root Razor view that wraps the page on first visit.</summary>
+    /// <summary>
+    /// Logical root document name used by <see cref="IInertiaRenderer"/> implementations.
+    /// The built-in MVC renderer treats this as the root Razor view name.
+    /// </summary>
     public string RootView { get; set; } = "App";
+
+    /// <summary>
+    /// Configures the built-in asset-backed HTML shell renderer for non-Inertia requests.
+    /// Enable this for hosts that serve a client bundle directly and do not want to use Razor.
+    /// </summary>
+    public InertiaAssetShellOptions AssetShell { get; } = new();
 
     /// <summary>
     /// Returns the current asset version string. Change this whenever assets

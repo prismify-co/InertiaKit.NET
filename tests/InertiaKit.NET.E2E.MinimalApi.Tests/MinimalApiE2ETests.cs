@@ -46,10 +46,8 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
 
         // Shared: auth prop
         props.TryGetProperty("auth", out _).Should().BeTrue();
-        // Shared once: appConfig in onceProps list and value in props on first visit
+        // Shared: appConfig available in props for the first visit
         props.TryGetProperty("appConfig", out _).Should().BeTrue();
-        page.RootElement.TryGetProperty("onceProps", out var once).Should().BeTrue();
-        once.EnumerateArray().Select(e => e.GetString()).Should().Contain("appConfig");
     }
 
     // ── Inertia JSON responses ────────────────────────────────────────────────
@@ -94,15 +92,44 @@ public class MinimalApiE2ETests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
-    public async Task GET_users_includes_appConfig_as_once_prop_on_first_request()
+    public async Task GET_users_includes_appConfig_once_prop_on_first_visit()
     {
         var response = await Client.GetInertia("/users");
         var page = await InertiaE2EClient.ParsePageObject(response);
 
         page.RootElement.GetProperty("props")
             .TryGetProperty("appConfig", out _).Should().BeTrue();
-        page.RootElement.TryGetProperty("onceProps", out var once).Should().BeTrue();
-        once.EnumerateArray().Select(e => e.GetString()).Should().Contain("appConfig");
+        page.RootElement.GetProperty("onceProps")
+            .GetProperty("appConfig")
+            .GetProperty("prop")
+            .GetString().Should().Be("appConfig");
+    }
+
+    [Fact]
+    public async Task GET_nested_docs_route_uses_optional_catch_all_component()
+    {
+        var response = await Client.GetInertia("/docs/guides/getting-started");
+        var page = await InertiaE2EClient.ParsePageObject(response);
+
+        page.RootElement.GetProperty("component").GetString().Should().Be("Docs/[[...page]]");
+        page.RootElement.GetProperty("props").GetProperty("slug").GetString().Should().Be("guides/getting-started");
+        page.RootElement.GetProperty("props").GetProperty("segments").EnumerateArray()
+            .Select(item => item.GetString())
+            .Should().Equal("guides", "getting-started");
+    }
+
+    [Fact]
+    public async Task GET_users_omits_appConfig_value_when_client_already_has_once_prop()
+    {
+        var response = await Client.GetInertia("/users", exceptOnceProps: "appConfig");
+        var page = await InertiaE2EClient.ParsePageObject(response);
+
+        page.RootElement.GetProperty("props")
+            .TryGetProperty("appConfig", out _).Should().BeFalse();
+        page.RootElement.GetProperty("onceProps")
+            .GetProperty("appConfig")
+            .GetProperty("prop")
+            .GetString().Should().Be("appConfig");
     }
 
     // ── Dashboard — deferred, optional, merge props ───────────────────────────

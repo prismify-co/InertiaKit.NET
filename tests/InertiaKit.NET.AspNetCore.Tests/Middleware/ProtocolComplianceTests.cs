@@ -263,7 +263,7 @@ public class ProtocolComplianceTests
         await host.StartAsync();
         var client = host.GetTestServer().CreateClient();
         client.DefaultRequestHeaders.Add("X-Inertia", "true");
-        client.DefaultRequestHeaders.Add("X-Inertia-Once-Props", "countries");
+        client.DefaultRequestHeaders.Add("X-Inertia-Except-Once-Props", "countries");
 
         var response = await client.GetAsync("/page");
         var body = await response.Content.ReadAsStringAsync();
@@ -271,9 +271,10 @@ public class ProtocolComplianceTests
 
         // Value must NOT be in props (client already has it)
         doc.RootElement.GetProperty("props").TryGetProperty("countries", out _).Should().BeFalse();
-        // But key must appear in onceProps
+        // But key must appear in onceProps with client metadata
         doc.RootElement.TryGetProperty("onceProps", out var once).Should().BeTrue();
-        once.EnumerateArray().Select(e => e.GetString()).Should().Contain("countries");
+        once.ValueKind.Should().Be(JsonValueKind.Object);
+        once.GetProperty("countries").GetProperty("prop").GetString().Should().Be("countries");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

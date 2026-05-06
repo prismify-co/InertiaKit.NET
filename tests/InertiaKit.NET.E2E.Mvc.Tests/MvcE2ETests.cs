@@ -38,16 +38,38 @@ public class MvcE2ETests : IClassFixture<WebApplicationFactory<Program>>
         });
 
     private static void AddInertiaHeaders(HttpRequestMessage req, string version = "1.0.0",
-        string? partialComponent = null, string? partialData = null)
+        string? partialComponent = null, string? partialData = null, string? exceptOnceProps = null)
     {
         req.Headers.Add("X-Inertia", "true");
         req.Headers.Add("X-Inertia-Version", version);
         if (partialComponent != null) req.Headers.Add("X-Inertia-Partial-Component", partialComponent);
         if (partialData     != null) req.Headers.Add("X-Inertia-Partial-Data",      partialData);
+        if (exceptOnceProps != null) req.Headers.Add("X-Inertia-Except-Once-Props", exceptOnceProps);
     }
 
     private static async Task<JsonDocument> ParsePage(HttpResponseMessage r) =>
         JsonDocument.Parse(await r.Content.ReadAsStringAsync());
+
+    private static async Task<string> ReadHtml(HttpResponseMessage response) =>
+        await response.Content.ReadAsStringAsync();
+
+    // ── Initial HTML render ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GET_root_without_inertia_header_returns_html_with_embedded_page_object()
+    {
+        var client = PlainClient();
+
+        var response = await client.GetAsync("/");
+        var html = await ReadHtml(response);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+        response.Headers.Vary.Should().Contain("X-Inertia");
+        response.Headers.Contains("X-Inertia").Should().BeFalse();
+        html.Should().Contain("id=\"app-data\"");
+        html.Should().Contain("Home/Index");
+    }
 
     // ── Users/Index ───────────────────────────────────────────────────────────
 
@@ -116,7 +138,7 @@ public class MvcE2ETests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GET_users_appConfig_in_onceProps_on_first_request()
+    public async Task GET_users_includes_appConfig_once_prop_on_first_visit()
     {
         var client = InertiaClient();
         var req = new HttpRequestMessage(HttpMethod.Get, "/users");
@@ -125,8 +147,30 @@ public class MvcE2ETests : IClassFixture<WebApplicationFactory<Program>>
         var response = await client.SendAsync(req);
         var page = await ParsePage(response);
 
-        page.RootElement.TryGetProperty("onceProps", out var once).Should().BeTrue();
-        once.EnumerateArray().Select(e => e.GetString()).Should().Contain("appConfig");
+        page.RootElement.GetProperty("props")
+            .TryGetProperty("appConfig", out _).Should().BeTrue();
+        page.RootElement.GetProperty("onceProps")
+            .GetProperty("appConfig")
+            .GetProperty("prop")
+            .GetString().Should().Be("appConfig");
+    }
+
+    [Fact]
+    public async Task GET_users_omits_appConfig_value_when_client_already_has_once_prop()
+    {
+        var client = InertiaClient();
+        var req = new HttpRequestMessage(HttpMethod.Get, "/users");
+        AddInertiaHeaders(req, exceptOnceProps: "appConfig");
+
+        var response = await client.SendAsync(req);
+        var page = await ParsePage(response);
+
+        page.RootElement.GetProperty("props")
+            .TryGetProperty("appConfig", out _).Should().BeFalse();
+        page.RootElement.GetProperty("onceProps")
+            .GetProperty("appConfig")
+            .GetProperty("prop")
+            .GetString().Should().Be("appConfig");
     }
 
     // ── Users/Create ──────────────────────────────────────────────────────────

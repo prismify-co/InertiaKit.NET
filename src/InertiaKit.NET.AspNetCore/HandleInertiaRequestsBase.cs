@@ -34,6 +34,10 @@ namespace InertiaKit.AspNetCore;
 /// </example>
 public abstract class HandleInertiaRequestsBase
 {
+    /// <summary>
+    /// Logical root document name used by the active <see cref="IInertiaRenderer"/>.
+    /// The built-in MVC renderer treats this as the Razor view name.
+    /// </summary>
     public virtual string RootView => "App";
 
     /// <summary>

@@ -18,7 +18,8 @@ public class InertiaMiddlewareTests
 {
     private static IHost BuildHost(
         Action<IEndpointRouteBuilder>? routes = null,
-        Action<InertiaOptions>? configure = null)
+        Action<InertiaOptions>? configure = null,
+        Action<IServiceCollection>? configureServices = null)
     {
         return new HostBuilder()
             .ConfigureWebHost(web =>
@@ -28,6 +29,7 @@ public class InertiaMiddlewareTests
                 {
                     services.AddRouting();
                     services.AddInertia(configure);
+                    configureServices?.Invoke(services);
                 });
                 web.Configure(app =>
                 {
@@ -110,6 +112,84 @@ public class InertiaMiddlewareTests
         var response = await client.GetAsync("/users");
 
         response.Headers.Contains("X-Inertia").Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Non_inertia_request_uses_default_html_shell_renderer()
+    {
+        using var host = BuildHost();
+        await host.StartAsync();
+        var client = host.GetTestClient();
+
+        var response = await client.GetAsync("/users");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+        body.Should().Contain("id=\"app-data\"");
+        body.Should().Contain("<div id=\"app\"></div>");
+    }
+
+    [Fact]
+    public async Task Non_inertia_request_uses_custom_renderer_when_registered()
+    {
+        using var host = BuildHost(configureServices: services =>
+            services.AddInertiaRenderer<TestInertiaRenderer>());
+        await host.StartAsync();
+        var client = host.GetTestClient();
+
+        var response = await client.GetAsync("/users");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+        body.Should().Contain("data-testid=\"custom-inertia-renderer\"");
+        body.Should().Contain("custom-app-data");
+        body.Should().Contain("Users/Index");
+    }
+
+    [Fact]
+    public async Task Non_inertia_request_uses_asset_shell_renderer_when_enabled()
+    {
+        using var host = BuildHost(configure: options =>
+        {
+            options.AssetShell.Enabled = true;
+            options.AssetShell.DocumentTitle = "Asset Shell";
+            options.AssetShell.StylesheetHrefs.Add("/build/app.css");
+            options.AssetShell.ModuleScriptHrefs.Add("/build/app.js");
+        });
+        await host.StartAsync();
+        var client = host.GetTestClient();
+
+        var response = await client.GetAsync("/users");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+        body.Should().Contain("<title>Asset Shell</title>");
+        body.Should().Contain("href=\"/build/app.css\"");
+        body.Should().Contain("type=\"module\" src=\"/build/app.js\"");
+        body.Should().Contain("id=\"app-data\"");
+    }
+
+    [Fact]
+    public async Task Asset_shell_renderer_takes_precedence_over_mvc_renderer_when_enabled()
+    {
+        using var host = BuildHost(
+            configure: options =>
+            {
+                options.AssetShell.Enabled = true;
+                options.AssetShell.ModuleScriptHrefs.Add("/build/app.js");
+            },
+            configureServices: services => services.AddControllersWithViews());
+        await host.StartAsync();
+        var client = host.GetTestClient();
+
+        var response = await client.GetAsync("/users");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        body.Should().Contain("type=\"module\" src=\"/build/app.js\"");
     }
 
     [Fact]
@@ -239,5 +319,27 @@ public class InertiaMiddlewareTests
 
         props.TryGetProperty("users", out _).Should().BeTrue();
         props.TryGetProperty("posts", out _).Should().BeFalse();
+    }
+
+    private sealed class TestInertiaRenderer : IInertiaRenderer
+    {
+        public bool CanRender(InertiaRenderContext context) => true;
+
+        public Task RenderAsync(InertiaRenderContext context)
+        {
+            context.HttpContext.Response.ContentType = "text/html";
+
+            var html = $$"""
+            <!DOCTYPE html>
+            <html>
+            <body data-testid="custom-inertia-renderer">
+            <div id="app">custom</div>
+            <script type="application/json" id="custom-app-data">{{context.PageJson}}</script>
+            </body>
+            </html>
+            """;
+
+            return context.HttpContext.Response.WriteAsync(html);
+        }
     }
 }

@@ -126,16 +126,17 @@ public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
         // OnceProp value present on first visit
         page.RootElement.GetProperty("props")
             .TryGetProperty("countries", out _).Should().BeTrue();
-        // Key advertised in onceProps
+        // Key advertised in onceProps with client metadata
         page.RootElement.TryGetProperty("onceProps", out var once).Should().BeTrue();
-        once.EnumerateArray().Select(e => e.GetString()).Should().Contain("countries");
+        once.ValueKind.Should().Be(JsonValueKind.Object);
+        once.GetProperty("countries").GetProperty("prop").GetString().Should().Be("countries");
     }
 
     [Fact]
     public async Task GET_users_omits_countries_value_when_client_already_has_it()
     {
         var client = InertiaClient();
-        client.DefaultRequestHeaders.Add("X-Inertia-Once-Props", "countries");
+        client.DefaultRequestHeaders.Add("X-Inertia-Except-Once-Props", "countries");
 
         var response = await client.GetAsync("/users");
         var page = await Page(response);
@@ -145,7 +146,8 @@ public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
             .TryGetProperty("countries", out _).Should().BeFalse();
         // Key still in onceProps so client keeps its cached copy
         page.RootElement.TryGetProperty("onceProps", out var once).Should().BeTrue();
-        once.EnumerateArray().Select(e => e.GetString()).Should().Contain("countries");
+        once.ValueKind.Should().Be(JsonValueKind.Object);
+        once.GetProperty("countries").GetProperty("prop").GetString().Should().Be("countries");
     }
 
     // ── POST /users — validation (422) + success (303) ───────────────────────
@@ -225,6 +227,8 @@ public class FastEndpointsE2ETests(WebApplicationFactory<Program> factory)
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         response.Headers.Vary.Should().Contain("X-Inertia");
         response.Headers.Contains("X-Inertia").Should().BeFalse();
+        html.Should().Contain("/fastendpoints/app.css");
+        html.Should().Contain("/fastendpoints/app.js");
         html.Should().Contain("app-data");
         html.Should().Contain("Home/Index");
     }

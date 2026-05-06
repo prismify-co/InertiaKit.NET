@@ -2,6 +2,7 @@ using InertiaKit.AspNetCore.Internal;
 using InertiaKit.Core.Abstractions;
 using InertiaKit.Core.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace InertiaKit.AspNetCore.Extensions;
@@ -21,6 +22,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IInertiaSerializer, SystemTextJsonInertiaSerializer>();
         services.AddScoped<IInertiaService, InertiaService>();
         services.AddScoped<InertiaResponseExecutor>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IInertiaRenderer, DefaultHtmlShellInertiaRenderer>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IInertiaRenderer, AssetShellInertiaRenderer>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IInertiaRenderer, MvcViewInertiaRenderer>());
         // Register PropResolver as scoped so DI injects a typed ILogger<PropResolver>
         services.AddScoped<PropResolver>();
 
@@ -43,6 +47,17 @@ public static class ServiceCollectionExtensions
         where T : HandleInertiaRequestsBase
     {
         services.AddScoped<HandleInertiaRequestsBase, T>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registers a custom <see cref="IInertiaRenderer"/> used for the initial HTML shell.
+    /// Custom renderers take precedence over the built-in MVC and default HTML-shell renderers.
+    /// </summary>
+    public static IServiceCollection AddInertiaRenderer<T>(this IServiceCollection services)
+        where T : class, IInertiaRenderer
+    {
+        services.AddScoped<IInertiaRenderer, T>();
         return services;
     }
 }

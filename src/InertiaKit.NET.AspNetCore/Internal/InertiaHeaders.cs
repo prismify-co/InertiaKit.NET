@@ -10,7 +10,8 @@ internal static class InertiaHeaders
     public const string PartialExcept    = "X-Inertia-Partial-Except";
     public const string ErrorBag         = "X-Inertia-Error-Bag";
     public const string Reset            = "X-Inertia-Reset";
-    public const string OnceProps        = "X-Inertia-Once-Props";
+    public const string ExceptOnceProps  = "X-Inertia-Except-Once-Props";
+    public const string LegacyOnceProps  = "X-Inertia-Once-Props";
     public const string Purpose          = "Purpose";
 
     // Response headers (Server → Client)

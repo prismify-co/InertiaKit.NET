@@ -1,5 +1,10 @@
 namespace InertiaKit.Core;
 
+public sealed record OncePropMetadata(string Prop)
+{
+    public long? ExpiresAt { get; init; }
+}
+
 /// <summary>
 /// Immutable representation of the Inertia page object.
 /// Embedded as JSON in the root HTML template on first visit;
@@ -27,7 +32,7 @@ public sealed record PageObject
 
     // Loading hints
     public IReadOnlyDictionary<string, IReadOnlyList<string>>? DeferredProps { get; init; }
-    public IReadOnlyList<string>? OnceProps { get; init; }
+    public IReadOnlyDictionary<string, OncePropMetadata>? OnceProps { get; init; }
 
     // Scroll / history
     public IReadOnlyList<ScrollRegion>? ScrollRegions { get; init; }

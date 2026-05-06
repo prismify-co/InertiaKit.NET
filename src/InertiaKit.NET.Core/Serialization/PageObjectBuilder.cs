@@ -37,7 +37,11 @@ public static class PageObjectBuilder
             : null;
 
         var onceProps = resolved.OnceKeys.Count > 0
-            ? (IReadOnlyList<string>?)resolved.OnceKeys.ToList()
+            ? (IReadOnlyDictionary<string, OncePropMetadata>?)resolved.OnceKeys
+                .ToDictionary(
+                    key => key,
+                    key => new OncePropMetadata(key),
+                    StringComparer.Ordinal)
             : null;
 
         return new PageObject

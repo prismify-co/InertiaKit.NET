@@ -16,7 +16,8 @@ internal sealed class InertiaE2EClient(HttpClient http)
     // ── Request helpers ───────────────────────────────────────────────────────
 
     public Task<HttpResponseMessage> GetInertia(string url, string version = "1.0.0",
-        string? partialComponent = null, string? partialData = null, string? partialExcept = null)
+        string? partialComponent = null, string? partialData = null, string? partialExcept = null,
+        string? exceptOnceProps = null)
     {
         var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.Add("X-Inertia", "true");
@@ -24,6 +25,7 @@ internal sealed class InertiaE2EClient(HttpClient http)
         if (partialComponent is not null) req.Headers.Add("X-Inertia-Partial-Component", partialComponent);
         if (partialData    is not null) req.Headers.Add("X-Inertia-Partial-Data",      partialData);
         if (partialExcept  is not null) req.Headers.Add("X-Inertia-Partial-Except",    partialExcept);
+        if (exceptOnceProps is not null) req.Headers.Add("X-Inertia-Except-Once-Props", exceptOnceProps);
         return http.SendAsync(req);
     }
 

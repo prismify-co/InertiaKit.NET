@@ -212,26 +212,28 @@ internal sealed class InertiaResponseExecutor(ILogger<InertiaResponseExecutor> l
         context.Items["InertiaPageSsrHtml"] = ssrHtml;
         context.Items["InertiaPageSsrHead"] = ssrHead;
 
-        var mvcMarker = services.GetService<
-            Microsoft.AspNetCore.Mvc.Infrastructure.IActionResultExecutor<
-                Microsoft.AspNetCore.Mvc.ViewResult>>();
-
-        if (mvcMarker is not null)
+        var renderContext = new InertiaRenderContext
         {
-            var viewName = handler?.RootView ?? options.RootView;
-            var actionContext = new Microsoft.AspNetCore.Mvc.ActionContext(
-                context,
-                context.Features.Get<Microsoft.AspNetCore.Routing.IRoutingFeature>()?.RouteData
-                    ?? new Microsoft.AspNetCore.Routing.RouteData(),
-                new Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor());
+            HttpContext = context,
+            RootView = handler?.RootView ?? options.RootView,
+            PageJson = pageJson,
+            SsrHtml = ssrHtml,
+            SsrHead = ssrHead,
+        };
 
-            var viewResult = new Microsoft.AspNetCore.Mvc.ViewResult { ViewName = viewName };
-            await viewResult.ExecuteResultAsync(actionContext);
+        foreach (var renderer in services.GetServices<IInertiaRenderer>()
+                     .OrderByDescending(renderer => renderer.Priority))
+        {
+            if (!renderer.CanRender(renderContext))
+                continue;
+
+            await renderer.RenderAsync(renderContext);
             return;
         }
 
-        context.Response.ContentType = "text/html";
-        await context.Response.WriteAsync(BuildHtmlShell(pageJson, ssrHtml, ssrHead), Encoding.UTF8);
+        throw new InvalidOperationException(
+            "No IInertiaRenderer could render the initial HTML response. "
+            + "Register a custom renderer or ensure the built-in renderers are available.");
     }
 
     private static bool IsSsrExcluded(HttpContext context, InertiaOptions options)
@@ -246,34 +248,17 @@ internal sealed class InertiaResponseExecutor(ILogger<InertiaResponseExecutor> l
         return false;
     }
 
-    private static string BuildHtmlShell(string pageJson, string? ssrHtml = null, string[]? ssrHead = null)
-    {
-        var headTags = ssrHead is { Length: > 0 }
-            ? string.Join('\n', ssrHead)
-            : string.Empty;
-
-        var appContent = ssrHtml ?? string.Empty;
-
-        return $"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="utf-8" />
-        {headTags}
-        </head>
-        <body>
-        <div id="app">{appContent}</div>
-        <script type="application/json" id="app-data">{pageJson}</script>
-        </body>
-        </html>
-        """;
-    }
-
     private static InertiaRequest ParseRequest(HttpContext context)
     {
         var headers = context.Request.Headers;
         if (!headers.ContainsKey(InertiaHeaders.Inertia))
             return InertiaRequest.NonInertia();
+
+        var exceptOnceProps = headers[InertiaHeaders.ExceptOnceProps].ToString() is { Length: > 0 } currentOnceProps
+            ? currentOnceProps
+            : headers[InertiaHeaders.LegacyOnceProps].ToString() is { Length: > 0 } legacyOnceProps
+                ? legacyOnceProps
+                : null;
 
         return InertiaRequest.Parse(
             isInertia: true,
@@ -283,7 +268,7 @@ internal sealed class InertiaResponseExecutor(ILogger<InertiaResponseExecutor> l
             partialExcept: headers[InertiaHeaders.PartialExcept].ToString() is { Length: > 0 } partialExcept ? partialExcept : null,
             errorBag: headers[InertiaHeaders.ErrorBag].ToString() is { Length: > 0 } errorBag ? errorBag : null,
             resetProps: headers[InertiaHeaders.Reset].ToString() is { Length: > 0 } resetProps ? resetProps : null,
-            onceProps: headers[InertiaHeaders.OnceProps].ToString() is { Length: > 0 } onceProps ? onceProps : null,
+            onceProps: exceptOnceProps,
             isPrefetch: string.Equals(
                 headers[InertiaHeaders.Purpose].ToString(),
                 "prefetch",
